@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = neutron_taas
+omit = neutron_taas/openstack/*
+
+[report]
+ignore-errors = True
