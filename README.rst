@@ -1,19 +1,24 @@
 ===============================
-tap-as-a-service
+Tap as a Service
 ===============================
+Tap-as-a-Service (TaaS) is an extension to the OpenStack network service (Neutron).
+It provides remote port mirroring capability for tenant virtual networks. 
 
-Tap-as-a-Service (TaaS) is an extension to the OpenStack network service (Neutron), it provides remote port mirroring capability for tenant virtual networks.
+Port mirroring involves sending a copy of packets entering and/or leaving one
+port to another port, which is usually different from the original destinations
+of the packets being mirrored.
 
-Please feel here a long description which must be at least 3 lines wrapped on
-80 cols, so that distribution package maintainers can use it in their packages.
-Note that this is a hard requirement.
+
+This service has been primarily designed to help tenants (or the cloud administrator)
+debug complex virtual networks and gain visibility into their VMs, by monitoring the
+network traffic associated with them. TaaS honors tenant boundaries and its mirror
+sessions are capable of spanning across multiple compute and network nodes. It serves
+as an essential infrastructure component that can be utilized for supplying data to a
+variety of network analytics and security applications (e.g. IDS).
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/tap-as-a-service
-* Source: http://git.openstack.org/cgit/stackforge/tap-as-a-service
-* Bugs: http://bugs.launchpad.net/https://launchpad.net/tap-as-a-service
+* Source: https://git.openstack.org/stackforge/tap-as-a-service
+* Bugs: https://bugs.launchpad.net/tap-as-a-service
 
-Features
---------
-
-* TODO
+For installing Tap-as-a-Service with Devstack please read the INSTALL.rst file
