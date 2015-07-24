@@ -1,0 +1,65 @@
+===================================
+Tap as a Service installation guide
+===================================
+
+This is the installation guide for enabling Tap-as-a-Service(TaaS) feature in
+OpenStack Neutron
+
+We have tested TaaS with DevStack version <TODO> running on Ubuntu 12.04 and
+14.04. TaaS is currently under active development and we will update you of
+new features and capabilities as and when they become available. Feel free to
+approach us with any issues related to installing or using TaaS.
+
+Dependencies
+============
+
+TaaS requires the 'Port Security' Neutron ML2 extension. Please make sure that
+this extension has been enabled in the ‘local.conf’ file during DevStack setup. 
+
+Adding the folowing section to 'local.conf' while installing devstack will enable
+'Port Security' extension
+
+	[[post-config|/$Q_PLUGIN_CONF_FILE]]
+	[ml2]
+	extension_drivers=port_security
+
+
+Installation
+============
+
+1. Install DevStack (remember to have 'port security' option enabled)
+
+2. Clone the TaaS git repository from git://git.openstack.org/stackforge/tap-as-a-service
+
+3. Find the installation script named 'install.sh' in the base directory (Located along with
+   README.rst and INSTALL.rst files) A complete installation of TaaS requires installation
+   of TaaS Plugin, TaaS Agent, and TaaS cli.
+
+4. To install the TaaS plugin and agent invoke the following command
+   	./install.sh install <directory where devstack neutron is installed> <mysql password>
+	Example: ./install.sh install /opt/stack/neutron/ stackdb
+
+Running TaaS
+============
+
+1. Running devstack neutron with TaaS plugin enabled (on the node where neutron server is running)
+
+   Once the installation is complete, go to the devstack screen session where neutron
+   server is running and kill the process and start it again. This should now start
+   neutron with TaaS plugin enabled.
+
+2. Running the TaaS Agent (on all the compute nodes)
+
+   Run ./install.sh run_agent <directory where devstack neutron is installed>
+   example ./install.sh run_agent /opt/stack/neutron/
+
+   This should start up the TaaS agent and run it on the terminal.
+
+Note
+====
+
+When you restack the devstak, make sure to run the TaaS installation process again
+We are working towards making TaaS more seemlessly integrated with devstack and make
+the installation process easier.
+
+
