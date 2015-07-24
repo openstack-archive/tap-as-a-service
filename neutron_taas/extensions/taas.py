@@ -22,7 +22,7 @@ from neutron.common import exceptions as qexception
 from neutron.plugins.common import constants
 from neutron.services import service_base
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log as logging
 
 import six

@@ -18,7 +18,7 @@ from neutron.agent.common import config
 from neutron.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import importutils
 
