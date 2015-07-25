@@ -89,6 +89,7 @@ class TaasAgentApi(object):
 class TaasPlugin(taas_db.Tass_db_Mixin):
 
     supported_extension_aliases = ["taas"]
+    path_prefix = "/taas"
 
     def __init__(self):
 
