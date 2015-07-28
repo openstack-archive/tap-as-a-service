@@ -17,7 +17,7 @@ as an essential infrastructure component that can be utilized for supplying data
 variety of network analytics and security applications (e.g. IDS).
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/tap-as-a-service
+* API Reference: https://github.com/stackforge/tap-as-a-service/blob/master/API_REFERENCE.rst
 * Source: https://git.openstack.org/stackforge/tap-as-a-service
 * Bugs: https://bugs.launchpad.net/tap-as-a-service
 
