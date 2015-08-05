@@ -7,22 +7,22 @@ DEVSTACK_PATH=$2
 MYSQL_PASS=$3
 
 if [ -z $COMMAND ] || [ -z $DEVSTACK_PATH ]; then
-    echo "Usage: $0 <install|run_agent> <devstack install path> [mysql password]"
+    echo "Usage: $0 <install_plugin|install_agent|run_agent> <devstack install path> [mysql password]"
     exit 1
 fi
 
-if [ "$COMMAND" != "install" ] && [ "$COMMAND" != "run_agent" ]; then
-    echo "Usage: $0 <install|run_agent> <devstack install path> [mysql password]"
+if [ "$COMMAND" != "install_plugin" ] && [ "$COMMAND" != "install_agent" ] && [ "$COMMAND" != "run_agent" ]; then
+    echo "Usage: $0 <install_plugin|install_agent|run_agent> <devstack install path> [mysql password]"
     exit 1
 fi
 
 # Switch on the command
 
-if [ "$COMMAND" = "install" ]; then
-    # Check if mysql password has been provided
-    if [ -z $MYSQL_PASS  ]; then
-        echo "Please provide the mysql password with the install command\n"
-        echo "Usage: $0 <install|run_agent> <devstack install path> [mysql password]"
+if [ "$COMMAND" = "install_plugin" ] || [ "$COMMAND" = "install_agent" ]; then
+    # Check if mysql password has been provided if the case is install_plugin
+    if [ "$COMMAND" = "install_plugin" ] && [ -z $MYSQL_PASS  ]; then
+        echo "Please provide the mysql password with the install_plugin command\n"
+        echo "Usage: $0 <install_plugin|install_agent|run_agent> <devstack install path> [mysql password]"
         exit 1
     fi
 
@@ -69,16 +69,18 @@ if [ "$COMMAND" = "install" ]; then
         exit 1
     fi
 
-    #invoke the database creator file
-    /usr/bin/python ./neutron_taas/neutron_dependencies/neutron_taas_db_init.py $MYSQL_PASS
-    if [ $? = 0 ]; then
-        echo "Created the DB schema required for TaaS...."
-    else
-        echo "Install failed while creating DB schema for TaaS"
-        exit 1
+    #invoke the database creator script
+    if [ "$COMMAND" = "install_plugin" ]; then
+        /usr/bin/python ./neutron_taas/neutron_dependencies/neutron_taas_db_init.py $MYSQL_PASS
+        if [ $? = 0 ]; then
+            echo "Created the DB schema required for TaaS...."
+        else
+            echo "Install failed while creating DB schema for TaaS"
+            exit 1
+        fi
     fi
 
-    # Install the taas_cli 
+    # Install the taas_cli
     sudo ln -s $DEVSTACK_PATH/neutron_taas/taas_cli/taas_cli.py /usr/local/bin/taas
     if [ $? = 0 ]; then
         echo "Installed the TaaS client in /usr/local/bin...."

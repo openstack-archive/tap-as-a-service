@@ -5,7 +5,7 @@ Tap as a Service installation guide
 This is the installation guide for enabling Tap-as-a-Service(TaaS) feature in
 OpenStack Neutron
 
-We have tested TaaS with DevStack version <TODO> running on Ubuntu 12.04 and
+We have tested TaaS with latest version DevStack running on Ubuntu 12.04 and
 14.04. TaaS is currently under active development and we will update you of
 new features and capabilities as and when they become available. Feel free to
 approach us with any issues related to installing or using TaaS.
@@ -20,7 +20,9 @@ Adding the folowing section to 'local.conf' while installing devstack will enabl
 'Port Security' extension
 
 	[[post-config|/$Q_PLUGIN_CONF_FILE]]
+
 	[ml2]
+
 	extension_drivers=port_security
 
 
@@ -35,9 +37,24 @@ Installation
    README.rst and INSTALL.rst files) A complete installation of TaaS requires installation
    of TaaS Plugin, TaaS Agent, and TaaS cli.
 
-4. To install the TaaS plugin and agent invoke the following command
-   	./install.sh install <directory where devstack neutron is installed> <mysql password>
-	Example: ./install.sh install /opt/stack/neutron/ stackdb
+4. To install the TaaS plugin invoke the following command
+
+   	./install.sh install_plugin <directory where devstack neutron is installed> <mysql password>
+
+	Example: ./install.sh install_plugin /opt/stack/neutron/ stackdb
+
+   Install the TaaS plugin on the node where Neutron Service is running (usually the controller node)
+
+5. To install the TaaS agent invoke the following command
+
+   	./install.sh install_agent <directory where devstack neutron is installed>
+
+	Example: ./install.sh install_agent /opt/stack/neutron/ stackdb
+
+   Install the TaaS agent on all the compute nodes.
+
+   **Important**: Note that if controller and compute are running on the same node, only run install_plugin
+   and it will install both the TaaS plugin and agent 
 
 Running TaaS
 ============
