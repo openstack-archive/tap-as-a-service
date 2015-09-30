@@ -242,7 +242,7 @@ In this section we describe a simple sequence of steps to use TaaS.
 Work Flow Sequence
 ------------------
 
-1. Create a Neutron port with 'port_security' set to 'disabled'.
+1. Create a Neutron port with 'port_security_enabled' set to 'false'.
 
 2. Launch a VM (VM on which you want to monitor/receive the mirroed data).
    Assoiciate the Neutron port created in step 1 while creating the VM.
@@ -254,7 +254,7 @@ Work Flow Sequence
    the Neutron port from which the traffic needs to be monitored already
    exists)
 
-5. Observer the mirroed traffic on the monitoring VM by running tools such as
+5. Observe the mirroed traffic on the monitoring VM by running tools such as
    tcpdump.
 
 

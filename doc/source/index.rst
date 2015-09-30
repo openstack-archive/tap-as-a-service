@@ -13,7 +13,9 @@ Contents:
 
    readme
    installation
+   devstack
    usage
+   api_reference
    contributing
 
 Indices and tables
