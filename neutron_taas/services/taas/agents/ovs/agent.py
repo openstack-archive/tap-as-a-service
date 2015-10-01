@@ -24,7 +24,7 @@ from oslo_service import service
 from neutron.agent.common import config
 from neutron.common import config as common_config
 from neutron.common import rpc as n_rpc
-from neutron.common import topics
+from neutron_taas.common import topics
 from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
 
 

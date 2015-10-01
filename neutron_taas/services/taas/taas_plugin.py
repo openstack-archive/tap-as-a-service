@@ -18,7 +18,7 @@ from oslo_config import cfg
 import oslo_messaging as messaging
 
 from neutron.common import rpc as n_rpc
-from neutron.common import topics
+from neutron_taas.common import topics
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas as taas_ex
 from oslo_log import log as logging

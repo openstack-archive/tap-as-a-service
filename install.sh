@@ -52,14 +52,6 @@ if [ "$COMMAND" = "install_plugin" ] || [ "$COMMAND" = "install_agent" ]; then
         exit 1
     fi
 
-    cp ./neutron_taas/neutron_dependencies/topics.py $DEVSTACK_PATH/neutron/common/topics.py
-    if [ $? = 0 ]; then
-        echo "Copied the common/topics.py file...."
-    else
-        echo "Install failed while copying topics.py file"
-        exit 1
-    fi
-
     # patch the neutron.conf file to support TaaS plugin
     ./neutron_taas/neutron_dependencies/patch_conf_file.sh ./neutron_taas/neutron_dependencies/taas.conf /etc/neutron/neutron.conf
     if [ $? = 0 ]; then
