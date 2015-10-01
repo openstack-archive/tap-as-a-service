@@ -4,4 +4,4 @@ source = neutron_taas
 omit = neutron_taas/openstack/*
 
 [report]
-ignore-errors = True
+ignore_errors = True
