@@ -14,7 +14,6 @@
 # under the License.
 
 from oslo_config import cfg
-# from oslo_messaging import messaging
 import oslo_messaging as messaging
 
 from neutron.common import rpc as n_rpc

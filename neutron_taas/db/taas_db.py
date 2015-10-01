@@ -18,7 +18,6 @@ from neutron.db import common_db_mixin as base_db
 from neutron.db import model_base
 from neutron.db import models_v2
 from neutron import manager
-# from neutron.openstack.common import uuidutils
 from neutron_taas.extensions import taas
 from oslo_log import log as logging
 from oslo_utils import uuidutils
@@ -37,18 +36,6 @@ class TapService(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     description = sa.Column(sa.String(1024), nullable=True)
     port_id = sa.Column(sa.String(36), nullable=False)
     network_id = sa.Column(sa.String(36), nullable=True)
-'''
-    def __init__(self, id, tenant_id, name, description, port_id, network_id):
-        self.id = id
-        self.tenant_id = tenant_id
-        self.name = name
-        self.description = description
-        self.port_id = port_id
-        self.network_id = network_id
-
-    def __repr__(self):
-        return "<TapService> %s" % self.id
-'''
 
 
 class TapFlow(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):

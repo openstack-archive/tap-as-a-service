@@ -15,7 +15,6 @@
 
 
 from oslo_config import cfg
-# from oslo import messaging
 import oslo_messaging as messaging
 
 from neutron.common import rpc as n_rpc
@@ -235,7 +234,6 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         LOG.debug("delete_tap_flow() called")
 
         tf = self.get_tap_flow(context, id)
-        # ts = self.get_tap_service(context, tf['tap_service_id'])
 
         taas_id = (self.get_tap_id_association(
             context,
