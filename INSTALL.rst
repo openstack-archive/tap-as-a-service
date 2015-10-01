@@ -14,7 +14,7 @@ Dependencies
 ============
 
 TaaS requires the 'Port Security' Neutron ML2 extension. Please make sure that
-this extension has been enabled in the ‘local.conf’ file during DevStack setup. 
+this extension has been enabled in the `local.conf` file during DevStack setup. 
 
 Adding the folowing section to 'local.conf' while installing devstack will enable
 'Port Security' extension
@@ -29,7 +29,7 @@ Adding the folowing section to 'local.conf' while installing devstack will enabl
 Installation
 ============
 
-1. Install DevStack (remember to have 'port security' option enabled)
+1. Install DevStack (remember to have 'port security' extension enabled)
 
 2. Clone the TaaS git repository from git://git.openstack.org/stackforge/tap-as-a-service
 
@@ -75,7 +75,7 @@ Running TaaS
 Note
 ====
 
-When you restack the devstak, make sure to run the TaaS installation process again
+When you restack the devstack, make sure to run the TaaS installation process again
 We are working towards making TaaS more seemlessly integrated with devstack and make
 the installation process easier.
 
