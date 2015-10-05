@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
+
 import mock
 import testtools
 
@@ -36,39 +38,44 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
         self._plugin = taas_plugin.TaasPlugin()
         self._context = context.get_admin_context()
 
-    def test_create_tap_service(self):
-        tenant_id = 'tenant-X'
-        network_id = uuidutils.generate_uuid()
-        host_id = 'host-A'
-        port_id = uuidutils.generate_uuid()
-        port_details = {
-            'tenant_id': tenant_id,
-            'binding:host_id': host_id,
+        self._tenant_id = 'tenant-X'
+        self._network_id = uuidutils.generate_uuid()
+        self._host_id = 'host-A'
+        self._port_id = uuidutils.generate_uuid()
+        self._port_details = {
+            'tenant_id': self._tenant_id,
+            'binding:host_id': self._host_id,
         }
-        tap_service = {
-            'tenant_id': tenant_id,
+        self._tap_service = {
+            'tenant_id': self._tenant_id,
             'name': 'MyTap',
             'description': 'This is my tap service',
-            'port_id': port_id,
-            'network_id': network_id,
+            'port_id': self._port_id,
+            'network_id': self._network_id,
         }
+
+    @contextlib.contextmanager
+    def tap_service(self):
         req = {
-            'tap_service': tap_service,
+            'tap_service': self._tap_service,
         }
         with mock.patch.object(self._plugin, '_get_port_details',
-                               return_value=port_details):
-            self._plugin.create_tap_service(self._context, req)
-        tap_service['id'] = mock.ANY
+                               return_value=self._port_details):
+            yield self._plugin.create_tap_service(self._context, req)
+        self._tap_service['id'] = mock.ANY
         expected_msg = {
-            'tap_service': tap_service,
+            'tap_service': self._tap_service,
             'taas_id': mock.ANY,
-            'port': port_details,
+            'port': self._port_details,
         }
-        self.assertEqual(
-            [
-                mock.call.create_tap_service(self._context, expected_msg,
-                                             host_id)
-            ], self._plugin.agent_rpc.mock_calls)
+        self._plugin.agent_rpc.assert_has_calls([
+            mock.call.create_tap_service(self._context, expected_msg,
+                                         self._host_id),
+        ])
+
+    def test_create_tap_service(self):
+        with self.tap_service():
+            pass
 
     def test_create_tap_service_wrong_tenant_id(self):
         tenant_id = 'tenant-X'
@@ -94,3 +101,20 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
             testtools.ExpectedException(taas_ext.PortDoesNotBelongToTenant):
             self._plugin.create_tap_service(self._context, req)
         self.assertEqual([], self._plugin.agent_rpc.mock_calls)
+
+    def test_delete_tap_service(self):
+        with self.tap_service() as ts:
+            self._plugin.delete_tap_service(self._context, ts['id'])
+        expected_msg = {
+            'tap_service': self._tap_service,
+            'taas_id': mock.ANY,
+            'port': self._port_details,
+        }
+        self._plugin.agent_rpc.assert_has_calls([
+            mock.call.delete_tap_service(self._context, expected_msg,
+                                         self._host_id),
+        ])
+
+    def test_delete_tap_service_non_existent(self):
+        with testtools.ExpectedException(taas_ext.TapServiceNotFound):
+            self._plugin.delete_tap_service(self._context, 'non-existent')
