@@ -21,6 +21,7 @@ import testtools
 from oslo_utils import uuidutils
 
 import neutron.common.rpc as n_rpc
+import neutron.common.utils as n_utils
 from neutron import context
 from neutron.tests.unit import testlib_api
 
@@ -45,6 +46,8 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
         self._port_details = {
             'tenant_id': self._tenant_id,
             'binding:host_id': self._host_id,
+            'mac_address': n_utils.get_random_mac(
+                'fa:16:3e:00:00:00'.split(':')),
         }
         self._tap_service = {
             'tenant_id': self._tenant_id,
@@ -52,6 +55,13 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
             'description': 'This is my tap service',
             'port_id': self._port_id,
             'network_id': self._network_id,
+        }
+        self._tap_flow = {
+            'description': 'This is my tap flow',
+            'direction': 'BOTH',
+            'name': 'MyTapFlow',
+            'source_port': self._port_id,
+            'tenant_id': self._tenant_id,
         }
 
     @contextlib.contextmanager
@@ -71,6 +81,30 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
         self._plugin.agent_rpc.assert_has_calls([
             mock.call.create_tap_service(self._context, expected_msg,
                                          self._host_id),
+        ])
+
+    @contextlib.contextmanager
+    def tap_flow(self, tap_service, tenant_id=None):
+        self._tap_flow['tap_service_id'] = tap_service
+        if tenant_id is not None:
+            self._tap_flow['tenant_id'] = tenant_id
+        req = {
+            'tap_flow': self._tap_flow,
+        }
+        with mock.patch.object(self._plugin, '_get_port_details',
+                               return_value=self._port_details):
+            yield self._plugin.create_tap_flow(self._context, req)
+        self._tap_flow['id'] = mock.ANY
+        self._tap_service['id'] = mock.ANY
+        expected_msg = {
+            'tap_flow': self._tap_flow,
+            'port_mac': self._port_details['mac_address'],
+            'taas_id': mock.ANY,
+            'port': self._port_details,
+        }
+        self._plugin.agent_rpc.assert_has_calls([
+            mock.call.create_tap_flow(self._context, expected_msg,
+                                      self._host_id),
         ])
 
     def test_create_tap_service(self):
@@ -118,3 +152,13 @@ class TestTaasPlugin(testlib_api.SqlTestCaseLight):
     def test_delete_tap_service_non_existent(self):
         with testtools.ExpectedException(taas_ext.TapServiceNotFound):
             self._plugin.delete_tap_service(self._context, 'non-existent')
+
+    def test_create_tap_flow(self):
+        with self.tap_service() as ts, self.tap_flow(tap_service=ts['id']):
+            pass
+
+    def test_create_tap_flow_wrong_tenant(self):
+        with self.tap_service() as ts, \
+            testtools.ExpectedException(taas_ext.TapServiceNotBelongToTenant), \
+            self.tap_flow(tap_service=ts['id'], tenant_id='other-tenant'):
+            pass
