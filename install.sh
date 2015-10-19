@@ -35,15 +35,6 @@ if [ "$COMMAND" = "install_plugin" ] || [ "$COMMAND" = "install_agent" ]; then
         exit 1
     fi
 
-    # Copy the dependency files
-    cp ./neutron_taas/neutron_dependencies/constants.py $DEVSTACK_PATH/neutron/plugins/common/constants.py
-    if [ $? = 0 ]; then
-        echo "Copied the plugin/common/constants.py file...."
-    else
-        echo "Install failed while copying constants.py file"
-        exit 1
-    fi
-
     cp ./neutron_taas/neutron_dependencies/repos.py $DEVSTACK_PATH/neutron/common/repos.py
     if [ $? = 0 ]; then
         echo "Copied the common/repos.py file...."
