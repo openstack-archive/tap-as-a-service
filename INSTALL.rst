@@ -27,7 +27,7 @@ Installation
 
 1. Install DevStack (remember to have 'port security' extension enabled)
 
-2. Clone the TaaS git repository from git://git.openstack.org/stackforge/tap-as-a-service
+2. Clone the TaaS git repository from git://git.openstack.org/openstack/tap-as-a-service
 
 3. Find the installation script named 'install.sh' in the base directory (Located along with
    README.rst and INSTALL.rst files) A complete installation of TaaS requires installation
