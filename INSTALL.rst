@@ -14,16 +14,12 @@ Dependencies
 ============
 
 TaaS requires the 'Port Security' Neutron ML2 extension. Please make sure that
-this extension has been enabled in the `local.conf` file during DevStack setup. 
+this extension has been enabled.
 
-Adding the folowing section to 'local.conf' while installing devstack will enable
-'Port Security' extension
+Adding the folowing to 'local.conf' while installing devstack will enable
+'Port Security' extension. (It's enabled by default)
 
-	[[post-config|/$Q_PLUGIN_CONF_FILE]]
-
-	[ml2]
-
-	extension_drivers=port_security
+    Q_ML2_PLUGIN_EXT_DRIVERS=port_security
 
 
 Installation
