@@ -15,6 +15,8 @@
 
 from tempest.api.network import base
 
+from neutron_taas.tests.tempest_plugin.tests import taas_client
 
-class BaseTaaSTest(base.BaseNetworkTest):
-    pass
+
+class BaseTaaSTest(taas_client.TaaSClientMixin, base.BaseNetworkTest):
+    _delete_wrapper = base.BaseNetworkTest._try_delete_resource
