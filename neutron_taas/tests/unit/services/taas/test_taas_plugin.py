@@ -31,7 +31,7 @@ import neutron_taas.extensions.taas as taas_ext
 from neutron_taas.services.taas import taas_plugin
 
 
-class TestTaasPlugin(testlib_api.SqlTestCaseLight):
+class TestTaasPlugin(testlib_api.SqlTestCase):
     def setUp(self):
         super(TestTaasPlugin, self).setUp()
         mock.patch.object(n_rpc, 'create_connection', auto_spec=True).start()
