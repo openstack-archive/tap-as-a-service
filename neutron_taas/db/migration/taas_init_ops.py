@@ -27,7 +27,8 @@ direction_types = sa.Enum('IN', 'OUT', 'BOTH', name='tapflows_direction')
 def upgrade():
     op.create_table(
         'tap_services',
-        sa.Column('id', sa.String(length=36), nullable=False),
+        sa.Column('id', sa.String(length=36), primary_key=True,
+                  nullable=False),
         sa.Column('tenant_id', sa.String(length=255), nullable=True),
         sa.Column('name', sa.String(length=255), nullable=True),
         sa.Column('description', sa.String(length=1024), nullable=True),
@@ -36,7 +37,8 @@ def upgrade():
 
     op.create_table(
         'tap_flows',
-        sa.Column('id', sa.String(length=36), nullable=False),
+        sa.Column('id', sa.String(length=36), primary_key=True,
+                  nullable=False),
         sa.Column('tenant_id', sa.String(length=255), nullable=True),
         sa.Column('name', sa.String(length=255), nullable=True),
         sa.Column('description', sa.String(length=1024), nullable=True),
@@ -48,5 +50,5 @@ def upgrade():
 
     op.create_table(
         'tap_id_associations',
-        sa.Column(sa.String(length=36)),
-        sa.Column(sa.INTEGER, primary_key=True, autoincrement=True))
+        sa.Column('tap_service_id', sa.String(length=36)),
+        sa.Column('taas_id', sa.INTEGER, primary_key=True, autoincrement=True))
