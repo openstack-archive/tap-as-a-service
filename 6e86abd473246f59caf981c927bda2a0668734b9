@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: vinay yadhav <vinay.yadhav@ericsson.com>
+Workflow+1: vinay yadhav <vinay.yadhav@ericsson.com>
+Submitted-by: Jenkins
+Submitted-at: Fri, 20 Nov 2015 04:25:37 +0000
+Reviewed-on: https://review.openstack.org/243991
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
