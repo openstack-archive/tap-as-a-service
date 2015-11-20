@@ -211,6 +211,13 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         if tenant_id != ts_tenant_id:
             raise taas_ex.TapServiceNotBelongToTenant()
 
+
+        # Extract the host where the service port is located
+        service_port_id = ts['port_id']
+        service_port = self._get_port_details(context, service_port_id)
+        service_host = service_port['binding:host_id']
+
+
         # Extract the host where the source port is located
         port = self._get_port_details(context, t_f['source_port'])
         host = port['binding:host_id']
@@ -224,7 +231,9 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         rpc_msg = {'tap_flow': tf,
                    'port_mac': port_mac,
                    'taas_id': taas_id,
-                   'port': port}
+                   'port': port,
+                   'service_host': service_host,
+                   'source_host': host}
 
         self.agent_rpc.create_tap_flow(context, rpc_msg, host)
 
@@ -234,11 +243,17 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         LOG.debug("delete_tap_flow() called")
 
         tf = self.get_tap_flow(context, id)
+        ts = self.get_tap_service(context, tf['tap_service_id'])
 
         taas_id = (self.get_tap_id_association(
             context,
             tf['tap_service_id'])['taas_id'] +
             cfg.CONF.taas.vlan_range_start)
+
+        # Extract the host where the service port is located
+        service_port_id = ts['port_id']
+        service_port = self._get_port_details(context, service_port_id)
+        service_host = service_port['binding:host_id']
 
         port = self._get_port_details(context, tf['source_port'])
         host = port['binding:host_id']
@@ -251,7 +266,9 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         rpc_msg = {'tap_flow': tf,
                    'port_mac': port_mac,
                    'taas_id': taas_id,
-                   'port': port}
+                   'port': port,
+                   'service_host': service_host,
+                   'source_host': host}
 
         self.agent_rpc.delete_tap_flow(context, rpc_msg, host)
 

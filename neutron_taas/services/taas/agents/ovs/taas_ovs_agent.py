@@ -83,7 +83,8 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
             'create_tap_service')
 
     def create_tap_flow(self, context, tap_flow_msg, host):
-        if host != self.conf.host:
+        service_host = tap_flow_msg['service_host']
+        if host != self.conf.host and service_host != self.conf.host:
             return
         LOG.debug("In RPC Call for Create Tap Flow: MSG=%s" % tap_flow_msg)
 
@@ -106,7 +107,8 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
             'delete_tap_service')
 
     def delete_tap_flow(self, context, tap_flow_msg, host):
-        if host != self.conf.host:
+        service_host = tap_flow_msg['service_host']
+        if host != self.conf.host and service_host != self.conf.host:
             return
         LOG.debug("In RPC Call for Delete Tap Flow: MSG=%s" % tap_flow_msg)
 
@@ -120,5 +122,5 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
         # to ensure all existing tunnel ports are included.
         #
-        self.taas_driver.update_tunnel_flood_flow()
+        self.taas_driver.add_update_vlan_submit_flow()
         pass
