@@ -1,0 +1,33 @@
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+#
+# This script is executed in the OpenStack CI job that runs DevStack + tempest.
+# You can find the CI job configuration here:
+#
+# http://git.openstack.org/cgit/openstack-infra/project-config/tree/jenkins/jobs/tap-as-a-service.yaml
+#
+
+# Begin list of exclusions.
+r="^(?!.*"
+
+# exclude the slow tag (part of the default for 'full')
+r="$r(?:.*\[.*\bslow\b.*\])"
+
+# End list of exclusions.
+r="$r)"
+
+r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas\.).*$"
+
+export DEVSTACK_GATE_TEMPEST_REGEX="$r"
