@@ -76,7 +76,7 @@ class ListTapFlow(extension.ClientExtensionList, TapFlow):
     """List tap flows."""
 
     shell_command = 'tap-flow-list'
-    list_columns = ['id', 'name','source_port', 'tap_service_id']
+    list_columns = ['id', 'name', 'source_port', 'tap_service_id']
     pagination_support = True
     sorting_support = True
 
