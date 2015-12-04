@@ -32,5 +32,5 @@ class NeutronTaaSPlugin(plugins.TempestPlugin):
                                 'neutron_taas/tests/tempest_plugin/tests')
         return (test_dir, top_level_dir)
 
-    def register_opts(self):
+    def register_opts(self, conf):
         return
