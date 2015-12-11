@@ -15,6 +15,7 @@ Contents:
    installation
    api_reference
    contributing
+   specs/index
 
 Indices and tables
 ==================
