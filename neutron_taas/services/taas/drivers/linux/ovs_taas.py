@@ -44,6 +44,16 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
         self.tun_br = OVSBridge_tap_extension('br-tun', self.root_helper)
         self.tap_br = OVSBridge_tap_extension('br-tap', self.root_helper)
 
+        #
+        # NOTE: OVS_TAAS_STAMP is a stamp to notify a flow is created by
+        # taas agent.
+        # Coordination is required to avoid conflicts of the cookie
+        # with other neutron subprojects.
+        #
+        #self.int_br.set_agent_uuid_stamp(ovs_consts.OVS_TAAS_STAMP)
+        #self.tun_br.set_agent_uuid_stamp(ovs_consts.OVS_TAAS_STAMP)
+        #self.tap_br.set_agent_uuid_stamp(ovs_consts.OVS_TAAS_STAMP)
+
         # Prepare OVS bridges for TaaS
         self.setup_ovs_bridges()
 
