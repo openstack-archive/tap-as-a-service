@@ -4,8 +4,11 @@ Tap as a Service API REFERENCE
 
 This documents is an API REFERENCE for Tap-as-a-Service Neutron extension.
 
-The documents is organized into three section, TaaS Resources, API Reference
-and WorkFlow.
+The documents is organized into the following sections:
+* TaaS Resources
+* API Reference
+* TaaS CLI Reference
+* WorkFlow.
 
 TaaS Resources
 ==============
@@ -229,10 +232,25 @@ extension
 
 \
 
+TaaS CLI Reference
+==================
+The TaaS commands can be executed using TaaS CLI, which is integrated with neutron.
+It can be used to send REST request and interact with the TaaS
+extension. Given below are the detail of the CLIs:
 
-The TaaS client can be used to send REST request and interact with the TaaS
-extension. For usage type **taas --help** in the terminal after TaaS has been
-installed.
+- **neutron tap-service-create**: Creates a Tap service.
+- **neutron tap-service-list**: Lists all the Tap services.
+- **neutron tap-service-show**: Show the details for a Tap service.
+- **neutron tap-service-update**: Update the information for a Tap service.
+- **neutron tap-service-delete**: Delete an existing Tap service.
+- **neutron tap-flow-create**: Creates a Tap flow.
+- **neutron tap-flow-list**: Lists all the Tap flows.
+- **neutron tap-flow-show**: Show the details for a Tap flow.
+- **neutron tap-flow-update**: Update the information for a Tap flow.
+- **neutron tap-flow-delete**: Delete an existing Tap flow.
+
+For usage type **--help** after any of the above commands
+in the terminal after TaaS has been installed.
 
 Work Flow
 =========
