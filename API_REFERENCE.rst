@@ -244,12 +244,14 @@ Work Flow Sequence
 
 1. Create a Neutron port with 'port_security_enabled' set to 'false'.
 
-2. Launch a VM (VM on which you want to monitor/receive the mirroed data).
+2. Launch a VM (VM on which you want to monitor/receive the mirrored data).
    Assoiciate the Neutron port created in step 1 while creating the VM.
 
-3. Create a Tap Service instance by associating the port created in step 1.
+3. Using TaaS client command **taas tap-service-create** or REST APIs
+   create a Tap Service instance by associating the port created in step 1.
 
-4. Create a Tap Flow instance by associating the tap service instance created
+4. Using TaaS client command **taas tap-flow-create** or REST APIs
+   create a Tap Flow instance by associating the Tap Service instance created
    in step 3 and Neutron port from which you want to mirror traffic (assuming
    the Neutron port from which the traffic needs to be monitored already
    exists)
