@@ -216,3 +216,22 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
             port = self._core_plugin().get_port(context, port_id)
 
         return port
+
+    def update_tap_service(self, context, id, tap_service):
+        LOG.debug("update_tap_service() called")
+        t_s = tap_service['tap_service']
+        tenant_id = self._get_tenant_id_for_create(context, t_s)
+        with context.session.begin(subtransactions=True):
+            tap_service_db = self._get_tap_service(context, id)
+            tap_service_db.update(t_s)
+        return self._make_tap_service_dict(tap_service_db)
+
+    def update_tap_flow(self, context, id, tap_flow):
+        LOG.debug("update_tap_flow() called")
+        t_s = tap_flow['tap_flow']
+        tenant_id = self._get_tenant_id_for_create(context, t_s)
+        with context.session.begin(subtransactions=True):
+            tap_flow_db = self._get_tap_flow(context, id)
+            tap_flow_db.update(t_s)
+        return self._make_tap_flow_dict(tap_flow_db)
+
