@@ -239,6 +239,11 @@ class TaasPluginBase(service_base.ServicePluginBase):
         pass
 
     @abc.abstractmethod
+    def update_tap_service(self, context, id, tap_service):
+        """Update a Tap Service."""
+        pass
+
+    @abc.abstractmethod
     def create_tap_flow(self, context, tap_flow):
         """Create a Tap Flow."""
         pass
@@ -258,4 +263,9 @@ class TaasPluginBase(service_base.ServicePluginBase):
                       sorts=None, limit=None, marker=None,
                       page_reverse=False):
         """List all Tap Flows."""
+        pass
+
+    @abc.abstractmethod
+    def update_tap_flow(self, context, id, tap_flow):
+        """Update a Tap Flow."""
         pass
