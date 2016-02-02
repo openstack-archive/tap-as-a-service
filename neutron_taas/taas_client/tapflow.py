@@ -66,14 +66,11 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             metavar="SOURCE_PORT",
             help=_('Source port to which the Tap Flow is connected.'))
         parser.add_argument(
-            '--service',
-            required=True,
-            dest='service_id',
+            'service',
             metavar="SERVICE",
             help=_('Tap Service to which the flow belongs.'))
         parser.add_argument(
-            '--direction',
-            required=True,
+            'direction',
             metavar="DIRECTION",
             choices=['IN', 'OUT', 'BOTH'],
             type=utils.convert_to_uppercase,
@@ -84,11 +81,11 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
         source_port = neutronv20.find_resourceid_by_name_or_id(
             client, 'port',
             parsed_args.port)
-        service_id = neutronv20.find_resourceid_by_name_or_id(
+        service = neutronv20.find_resourceid_by_name_or_id(
             client, 'tap_service',
-            parsed_args.service_id)
+            parsed_args.service)
         body = {'source_port': source_port,
-                'tap_service_id': service_id}
+                'tap_service_id': service}
         if parsed_args.tenant_id:
             body['tenant_id'] = parsed_args.tenant_id
         neutronv20.update_dict(parsed_args, body, ['direction'])
