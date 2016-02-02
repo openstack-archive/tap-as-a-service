@@ -46,7 +46,7 @@ class TaaSClientMixin(object):
 
     def create_tap_service(self, **kwargs):
         body = self.tap_services_client.create_tap_service(
-            name=data_utils.rand_name("tap-service"),
+            name=data_utils.rand_name("tap_service"),
             **kwargs)
         tap_service = body['tap_service']
         self.addCleanup(self._delete_wrapper,
@@ -56,7 +56,7 @@ class TaaSClientMixin(object):
 
     def create_tap_flow(self, **kwargs):
         body = self.tap_flows_client.create_tap_flow(
-            name=data_utils.rand_name("tap-service"),
+            name=data_utils.rand_name("tap_service"),
             **kwargs)
         tap_flow = body['tap_flow']
         self.addCleanup(self._delete_wrapper,

@@ -91,7 +91,7 @@ extension
 
 \
 
-   **POST        /v2.0/taas/tap-services**
+   **POST        /v2.0/taas/tap_services**
 
 \
 
@@ -129,7 +129,7 @@ extension
 
 \
 
-    **GET        /v2.0/taas/tap-services/{tap_service_uuid}**
+    **GET        /v2.0/taas/tap_services/{tap_service_uuid}**
 
 \
 
@@ -153,7 +153,7 @@ extension
 
 \
 
-    **DELETE        /v2.0/taas/tap-services/{tap_service_uuid}**
+    **DELETE        /v2.0/taas/tap_services/{tap_service_uuid}**
 
 \
 
@@ -161,7 +161,7 @@ extension
 
 \
 
-   **POST        /v2.0/taas/tap-flows**
+   **POST        /v2.0/taas/tap_flows**
 
 \
 
@@ -202,7 +202,7 @@ extension
 
 \
 
-    **GET        /v2.0/taas/tap-flows/{tap_flow_uuid}**
+    **GET        /v2.0/taas/tap_flows/{tap_flow_uuid}**
 
 \
 
@@ -228,7 +228,7 @@ extension
 
 \
 
-    **DELETE        /v2.0/taas/tap-flows/{tap_flow_uuid}**
+    **DELETE        /v2.0/taas/tap_flows/{tap_flow_uuid}**
 
 \
 
