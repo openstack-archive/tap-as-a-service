@@ -89,7 +89,9 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             parsed_args.service_id)
         body = {'source_port': source_port,
                 'tap_service_id': service_id}
-        neutronv20.update_dict(parsed_args, body, ['tenant_id', 'direction'])
+        if parsed_args.tenant_id:
+            body['tenant_id'] = parsed_args.tenant_id
+        neutronv20.update_dict(parsed_args, body, ['direction'])
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}
 
