@@ -191,7 +191,7 @@ class Taas(extensions.ExtensionDescriptor):
         return resource_helper.build_resource_info(plural_mappings,
                                                    RESOURCE_ATTRIBUTE_MAP,
                                                    constants.TAAS,
-                                                   translate_name=True,
+                                                   translate_name=False,
                                                    allow_bulk=True)
 
     def update_attributes_map(self, attributes):
