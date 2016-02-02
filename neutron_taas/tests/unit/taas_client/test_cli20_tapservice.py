@@ -22,7 +22,7 @@ from neutronclient.tests.unit import test_cli20
 
 
 class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base):
-    resource = 'tap-service'
+    resource = 'tap_service'
     resource_plural = '%ss' % resource
 
     def setUp(self):

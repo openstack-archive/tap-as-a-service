@@ -36,7 +36,7 @@ def _updatable_args2body(parsed_args, body):
 class TapFlow(extension.NeutronClientExtension):
     # Define required variables for resource operations.
 
-    resource = 'tap-flow'
+    resource = 'tap_flow'
     resource_plural = '%ss' % resource
     object_path = '/taas/%s' % resource_plural
     resource_path = '/taas/%s/%%s' % resource_plural
@@ -85,7 +85,7 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             client, 'port',
             parsed_args.port)
         service_id = neutronv20.find_resourceid_by_name_or_id(
-            client, 'tap-service',
+            client, 'tap_service',
             parsed_args.service_id)
         body = {'source_port': source_port,
                 'tap_service_id': service_id}

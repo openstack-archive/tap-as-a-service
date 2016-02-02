@@ -35,7 +35,7 @@ def _updatable_args2body(parsed_args, body):
 class TapService(extension.NeutronClientExtension):
     # Define required variables for resource operations.
 
-    resource = 'tap-service'
+    resource = 'tap_service'
     resource_plural = '%ss' % resource
     object_path = '/taas/%s' % resource_plural
     resource_path = '/taas/%s/%%s' % resource_plural
