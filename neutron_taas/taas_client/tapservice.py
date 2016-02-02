@@ -81,8 +81,9 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
             client, 'network',
             parsed_args.network_id)
         body = {'port_id': port_id,
-                'network_id': network_id,
-                'tenant_id': parsed_args.tenant_id}
+                'network_id': network_id}
+        if parsed_args.tenant_id:
+            body['tenant_id'] = parsed_args.tenant_id
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}
 
