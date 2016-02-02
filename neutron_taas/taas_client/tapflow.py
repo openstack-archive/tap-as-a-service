@@ -43,15 +43,6 @@ class TapFlow(extension.NeutronClientExtension):
     versions = ['2.0']
 
 
-class ListTapFlow(extension.ClientExtensionList, TapFlow):
-    # List tap flows.
-
-    shell_command = 'tap-flow-list'
-    list_columns = ['id', 'name', 'source_port', 'tap_service_id']
-    pagination_support = True
-    sorting_support = True
-
-
 class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
     # Create a tap flow.
 
@@ -63,35 +54,34 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
         parser.add_argument(
             '--port',
             required=True,
-            metavar="SOURCE_PORT",
-            help=_('Source port to which the Tap Flow is connected.'))
+            metavar="PORT",
+            help=_('Port that will be monitored by the Tap Flow.'))
         parser.add_argument(
-            '--service',
+            '--tap-service',
             required=True,
-            dest='service_id',
-            metavar="SERVICE",
-            help=_('Tap Service to which the flow belongs.'))
+            metavar="TAP_SERVICE",
+            help=_('Tap Service to which the Tap Flow belongs.'))
         parser.add_argument(
             '--direction',
             required=True,
             metavar="DIRECTION",
             choices=['IN', 'OUT', 'BOTH'],
             type=utils.convert_to_uppercase,
-            help=_('Direction of the Tap flow .'))
+            help=_('Direction of traffic monitoring.'))
 
     def args2body(self, parsed_args):
         client = self.get_client()
-        source_port = neutronv20.find_resourceid_by_name_or_id(
+        port_id = neutronv20.find_resourceid_by_name_or_id(
             client, 'port',
             parsed_args.port)
-        service_id = neutronv20.find_resourceid_by_name_or_id(
+        tap_service_id = neutronv20.find_resourceid_by_name_or_id(
             client, 'tap_service',
-            parsed_args.service_id)
-        body = {'source_port': source_port,
-                'tap_service_id': service_id}
+            parsed_args.tap_service)
+        body = {'source_port': port_id,
+                'tap_service_id': tap_service_id,
+                'direction': parsed_args.direction}
         if parsed_args.tenant_id:
             body['tenant_id'] = parsed_args.tenant_id
-        neutronv20.update_dict(parsed_args, body, ['direction'])
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}
 
@@ -100,6 +90,15 @@ class DeleteTapFlow(extension.ClientExtensionDelete, TapFlow):
     # Delete a tap flow.
 
     shell_command = 'tap-flow-delete'
+
+
+class ListTapFlow(extension.ClientExtensionList, TapFlow):
+    # List tap flows.
+
+    shell_command = 'tap-flow-list'
+    list_columns = ['id', 'name', 'source_port', 'tap_service_id']
+    pagination_support = True
+    sorting_support = True
 
 
 class ShowTapFlow(extension.ClientExtensionShow, TapFlow):
