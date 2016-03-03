@@ -15,9 +15,8 @@
 
 import testtools
 
-from tempest_lib import exceptions as lib_exc
-
 from tempest import config
+from tempest.lib import exceptions as lib_exc
 from tempest import test
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
