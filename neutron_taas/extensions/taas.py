@@ -50,15 +50,19 @@ class InvalidSourcePort(qexception.NotFound):
 
 
 class PortDoesNotBelongToTenant(qexception.NotAuthorized):
-    message = _("The port specified does not belong to the tenant")
+    message = _("The specified port does not belong to the tenant")
 
 
 class TapServiceNotBelongToTenant(qexception.NotAuthorized):
-    message = _("Tap Service specified does not belong to the tenant")
+    message = _("Specified Tap Service does not belong to the tenant")
 
 
 class TapServiceLimitReached(qexception.OverQuota):
-    message = _("Reached the upper limit of Tap Services Creatable")
+    message = _("Reached the maximum quota for Tap Services")
+
+
+class TapFlowNotBelongToTenant(qexception.NotAuthorized):
+    message = _("Specified Tap Flow does not belong to the tenant")
 
 
 direction_enum = [None, 'IN', 'OUT', 'BOTH']
