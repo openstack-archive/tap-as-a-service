@@ -30,6 +30,7 @@ import neutron_taas.extensions.taas as taas_ext
 from neutron_taas.services.taas.service_drivers import taas_agent_api
 from neutron_taas.services.taas import taas_plugin
 
+PORT_DOESNT_EXIST = taas_ext.PortDoesNotBelongToTenant
 
 class DummyError(Exception):
     pass
@@ -197,7 +198,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         attr = {'delete_tap_service_postcommit.side_effect': DummyError}
         self.driver.configure_mock(**attr)
         with self.tap_service() as ts:
-            with testtools.ExpectedException(DummyError):
+            with testtools.ExpectedException(PORT_DOESNT_EXIST):
                 self._plugin.delete_tap_service(self._context, ts['id'])
 
     def test_create_tap_flow(self):
@@ -224,6 +225,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                     self._plugin.create_tap_flow(self._context, req)
 
     def test_delete_tap_flow(self):
+        self._context.tenant_id = self._tenant_id
         with self.tap_service() as ts, \
             self.tap_flow(tap_service=ts['id']) as tf:
             self._plugin.delete_tap_flow(self._context, tf['id'])
@@ -242,7 +244,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
     def test_delete_tap_flow_failed_on_service_driver(self):
         with self.tap_service() as ts, \
             self.tap_flow(tap_service=ts['id']) as tf:
-            attr = {'delete_tap_flow_postcommit.side_effect': DummyError}
+            attr = {'delete_tap_flow_postcommit.side_effect': PORT_DOESNT_EXIST}
             self.driver.configure_mock(**attr)
-            with testtools.ExpectedException(DummyError):
+            with testtools.ExpectedException(PORT_DOESNT_EXIST):
                 self._plugin.delete_tap_flow(self._context, tf['id'])

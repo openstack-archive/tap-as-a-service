@@ -104,7 +104,15 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
 
     def delete_tap_service(self, context, id):
         LOG.debug("delete_tap_service() called")
+        # Get taas id associated with the Tap Service
+        tap_id_association = self.get_tap_id_association(
+            context,
+            tap_service_id=id)
 
+        ts = self.get_tap_service(context, id)
+
+        if context.tenant_id != ts['tenant_id']:
+            raise taas_ex.PortDoesNotBelongToTenant()
         # Get all the tap Flows that are associated with the Tap service
         # and delete them as well
         t_f_collection = self.get_tap_flows(
@@ -163,6 +171,8 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
 
         with context.session.begin(subtransactions=True):
             tf = self.get_tap_flow(context, id)
+            if context.tenant_id != tf['tenant_id']:
+                raise taas_ex.PortDoesNotBelongToTenant()
             driver_context = sd_context.TapFlowContext(self, context, tf)
             super(TaasPlugin, self).delete_tap_flow(context, id)
             self.driver.delete_tap_flow_precommit(driver_context)
