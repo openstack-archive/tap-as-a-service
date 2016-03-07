@@ -99,6 +99,22 @@ class DeleteTapFlow(extension.ClientExtensionDelete, TapFlow):
 
     shell_command = 'tap-flow-delete'
 
+    def add_known_arguments(parser):
+        parser.add_argument(
+        '--tenant-id',
+        required=True,
+        help=_("Tenant ID to which the Tap Flow belongs to."))
+
+    def run(self, parsed_args):
+        tenant_id=find_resource_by_id(client, resource,
+                  parsed_args.id)['tenant_id']
+        if tenant_id != parsed_args.tenant_id:
+            exceptions.NeutronClientException(_(
+                "The tenant-id:%(tenant)s is not the owner of the Tap-Flow."
+                " Therefore the Tap-Flow cannot be deleted")  %
+                         {'tenant': parsed_args.tenant_id})
+
+
 
 class ShowTapFlow(extension.ClientExtensionShow, TapFlow):
     # Show a tap flow.

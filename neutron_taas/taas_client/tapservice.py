@@ -14,6 +14,7 @@
 #    under the License.
 #
 
+from neutronclient.common import exceptions
 from neutronclient.common import extension
 from neutronclient.i18n import _
 from neutronclient.neutron import v2_0 as neutronv20
@@ -91,6 +92,22 @@ class DeleteTapService(extension.ClientExtensionDelete, TapService):
     # Delete a tap service.
 
     shell_command = 'tap-service-delete'
+
+    def add_known_arguments(parser):
+        parser.add_argument(
+        '--tenant-id',
+        required=True,
+        help=_("Tenant ID to which the Tap Service belongs to."))
+
+    def run(self, parsed_args):
+        tenant_id=find_resource_by_id(client, resource,
+                  parsed_args.id)['tenant_id']
+        if tenant_id != parsed_args.tenant_id:
+            exceptions.NeutronClientException(_(
+                "The tenant-id:%(tenant)s is not the owner of the Tap-Service."
+                " Therefore the Tap-Service cannot be deleted")  %
+                         {'tenant': parsed_args.tenant_id})
+
 
 
 class ShowTapService(extension.ClientExtensionShow, TapService):
