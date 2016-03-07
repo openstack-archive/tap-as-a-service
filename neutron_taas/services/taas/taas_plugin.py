@@ -158,6 +158,8 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
 
         ts = self.get_tap_service(context, id)
 
+        if context.tenant_id != ts['tenant_id']:
+            raise taas_ex.PortDoesNotBelongToTenant()
         # Get all the tap Flows that are associated with the Tap service
         # and delete them as well
         t_f_collection = self.get_tap_flows(
@@ -230,6 +232,9 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         LOG.debug("delete_tap_flow() called")
 
         tf = self.get_tap_flow(context, id)
+
+        if context.tenant_id != tf['tenant_id']:
+            raise taas_ex.PortDoesNotBelongToTenant()
 
         taas_id = (self.get_tap_id_association(
             context,
