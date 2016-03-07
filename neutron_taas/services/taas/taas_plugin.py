@@ -105,17 +105,19 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
     def delete_tap_service(self, context, id):
         LOG.debug("delete_tap_service() called")
 
-        # Get all the tap Flows that are associated with the Tap service
-        # and delete them as well
-        t_f_collection = self.get_tap_flows(
-            context,
-            filters={'tap_service_id': [id]}, fields=['id'])
-
-        for t_f in t_f_collection:
-            self.delete_tap_flow(context, t_f['id'])
-
         with context.session.begin(subtransactions=True):
             ts = self.get_tap_service(context, id)
+            if context.tenant_id != ts['tenant_id']:
+                raise taas_ex.TapServiceNotBelongToTenant()
+            # Get all the tap Flows that are associated with the Tap service
+            # and delete them as well
+            t_f_collection = self.get_tap_flows(
+                context,
+                filters={'tap_service_id': [id]}, fields=['id'])
+
+            for t_f in t_f_collection:
+                self.delete_tap_flow(context, t_f['id'])
+
             driver_context = sd_context.TapServiceContext(self, context, ts)
             super(TaasPlugin, self).delete_tap_service(context, id)
             self.driver.delete_tap_service_precommit(driver_context)
@@ -163,6 +165,8 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
 
         with context.session.begin(subtransactions=True):
             tf = self.get_tap_flow(context, id)
+            if context.tenant_id != tf['tenant_id']:
+                raise taas_ex.TapFlowNotBelongToTenant()
             driver_context = sd_context.TapFlowContext(self, context, tf)
             super(TaasPlugin, self).delete_tap_flow(context, id)
             self.driver.delete_tap_flow_precommit(driver_context)
