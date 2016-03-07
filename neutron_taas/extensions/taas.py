@@ -58,6 +58,10 @@ class TapServiceNotBelongToTenant(qexception.NotAuthorized):
     message = _("Specified Tap Service does not belong to the tenant")
 
 
+class TapFlowNotBelongToTenant(qexception.NotAuthorized):
+    message = _("Specified Tap Flow does not belong to the tenant")
+
+
 class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 

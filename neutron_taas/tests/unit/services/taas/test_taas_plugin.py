@@ -53,6 +53,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self._context = context.get_admin_context()
 
         self._project_id = self._tenant_id = 'tenant-X'
+        self._context.tenant_id = self._project_id
         self._network_id = uuidutils.generate_uuid()
         self._host_id = 'host-A'
         self._port_id = uuidutils.generate_uuid()
@@ -79,7 +80,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         }
 
     @contextlib.contextmanager
-    def tap_service(self):
+    def tap_service(self, tenant_id=None):
         req = {
             'tap_service': self._tap_service,
         }
@@ -88,6 +89,8 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             yield self._plugin.create_tap_service(self._context, req)
         self._tap_service['id'] = mock.ANY
         self._tap_service['status'] = 'ACTIVE'
+        if tenant_id:
+            self._tap_service['tenant_id'] = tenant_id
 
         self.driver.assert_has_calls([
             mock.call.create_tap_service_precommit(mock.ANY),
@@ -153,7 +156,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                 self._plugin.create_tap_service(self._context, req)
 
     def test_delete_tap_service(self):
-        with self.tap_service() as ts:
+        with self.tap_service(tenant_id=self._tenant_id) as ts:
             self._plugin.delete_tap_service(self._context, ts['id'])
         self.driver.assert_has_calls([
             mock.call.delete_tap_service_precommit(mock.ANY),
@@ -167,8 +170,8 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self.assertEqual(self._tap_service, post_args.tap_service)
 
     def test_delete_tap_service_with_flow(self):
-        with self.tap_service() as ts, \
-            self.tap_flow(tap_service=ts['id']):
+        with self.tap_service(tenant_id=self._tenant_id) as ts, \
+            self.tap_flow(tap_service=ts['id'], tenant_id=ts['tenant_id']):
             self._plugin.delete_tap_service(self._context, ts['id'])
         self.driver.assert_has_calls([
             mock.call.delete_tap_flow_precommit(mock.ANY),
@@ -196,7 +199,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
     def test_delete_tap_service_failed_on_service_driver(self):
         attr = {'delete_tap_service_postcommit.side_effect': DummyError}
         self.driver.configure_mock(**attr)
-        with self.tap_service() as ts:
+        with self.tap_service(tenant_id=self._tenant_id) as ts:
             with testtools.ExpectedException(DummyError):
                 self._plugin.delete_tap_service(self._context, ts['id'])
 
@@ -224,6 +227,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                     self._plugin.create_tap_flow(self._context, req)
 
     def test_delete_tap_flow(self):
+        self._context.tenant_id = self._tenant_id
         with self.tap_service() as ts, \
             self.tap_flow(tap_service=ts['id']) as tf:
             self._plugin.delete_tap_flow(self._context, tf['id'])
@@ -240,8 +244,8 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self.assertEqual(self._tap_flow, post_args.tap_flow)
 
     def test_delete_tap_flow_failed_on_service_driver(self):
-        with self.tap_service() as ts, \
-            self.tap_flow(tap_service=ts['id']) as tf:
+        with self.tap_service(tenant_id=self._tenant_id) as ts, \
+            self.tap_flow(tap_service=ts['id'], tenant_id=ts['tenant_id']) as tf:
             attr = {'delete_tap_flow_postcommit.side_effect': DummyError}
             self.driver.configure_mock(**attr)
             with testtools.ExpectedException(DummyError):
