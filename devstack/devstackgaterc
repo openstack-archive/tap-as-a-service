@@ -19,6 +19,14 @@
 # http://git.openstack.org/cgit/openstack-infra/project-config/tree/jenkins/jobs/tap-as-a-service.yaml
 #
 
+OVERRIDE_ENABLED_SERVICES=key,mysql,rabbit
+OVERRIDE_ENABLED_SERVICES+=,g-api,g-regn-api
+OVERRIDE_ENABLED_SERVICES+=,n-cond,n-cpu,n-crt,n-obj,n-sch
+OVERRIDE_ENABLED_SERVICES+=,q-agt,q-dhcp,q-l3,q-meta,q-svc,quantum,
+OVERRIDE_ENABLED_SERVICES+=,taas,taas_openvswitch_agent
+OVERRIDE_ENABLED_SERVICES+=,tempest,dstat
+export OVERRIDE_ENABLED_SERVICES
+
 # Begin list of exclusions.
 r="^(?!.*"
 
