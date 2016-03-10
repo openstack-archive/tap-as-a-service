@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.services.network.json import base
+from tempest.lib.services.network.json import base
 
 
 class TapServicesClient(base.BaseNetworkClient):
