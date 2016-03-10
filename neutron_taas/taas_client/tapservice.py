@@ -41,6 +41,12 @@ class TapService(extension.NeutronClientExtension):
     resource_path = '/taas/%s/%%s' % resource_plural
     versions = ['2.0']
 
+    def take_action(self, parsed_args):
+        return self.execute(parsed_args)
+
+    def execute(self, parsed_args):
+        return super(TapService, self).take_action(parsed_args)
+
 
 class ListTapService(extension.ClientExtensionList, TapService):
     # List tap services.
