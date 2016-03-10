@@ -42,6 +42,12 @@ class TapFlow(extension.NeutronClientExtension):
     resource_path = '/taas/%s/%%s' % resource_plural
     versions = ['2.0']
 
+    def take_action(self, parsed_args):
+        return self.execute(parsed_args)
+
+    def execute(self, parsed_args):
+        return super(TapFlow, self).take_action(parsed_args)
+
 
 class ListTapFlow(extension.ClientExtensionList, TapFlow):
     # List tap flows.
