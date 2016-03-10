@@ -47,4 +47,5 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     @test.idempotent_id('2d5024f5-bc80-4a31-a4a5-5bf5b14a8f3e')
     def test_create_tap_service_with_wrong_network(self):
         with testtools.ExpectedException(lib_exc.BadRequest):
-            self.create_tap_service(network_id='nonexistent')
+            self.create_tap_service(network_id='nonexistent',
+                                    port_id="YouShallNotPass!!")
