@@ -21,8 +21,17 @@ from neutronclient import shell
 from neutronclient.tests.unit import test_cli20
 
 
+class CLITestV20TapService(tapservice.TapService):
+
+    def take_action(self, parsed_args):
+        return self.execute(parsed_args)
+
+    def execute(self, parsed_args):
+        return super(CLITestV20TapService, self).take_action(parsed_args)
+
+
 class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base,
-                               tapservice.TapService):
+                               CLITestV20TapService):
 
     def setUp(self):
         self._mock_extension_loading()
