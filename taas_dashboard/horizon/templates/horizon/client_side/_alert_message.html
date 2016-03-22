@@ -1,0 +1,19 @@
+{% extends "horizon/client_side/template.html" %}
+{% load horizon %}
+
+{% block id %}alert_message_template{% endblock %}
+
+{% block template %}{% spaceless %}{% jstemplate %}
+<div class="alert alert-dismissable fade in alert-[[type]]">
+  <a class="close" data-dismiss="alert" href="#">&times;</a>
+  <p>
+    <strong>[[type_display]]</strong>
+    [[#safe]]
+      [[[message]]]
+    [[/safe]]
+    [[^safe]]
+      [[message]]
+    [[/safe]]
+  </p>
+</div>
+{% endjstemplate %}{% endspaceless %}{% endblock %}

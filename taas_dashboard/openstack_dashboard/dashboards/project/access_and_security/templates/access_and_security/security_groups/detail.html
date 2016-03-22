@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Manage Security Group Rules" %}{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+  {{ table.render }}
+  </div>
+</div>
+{% endblock %}

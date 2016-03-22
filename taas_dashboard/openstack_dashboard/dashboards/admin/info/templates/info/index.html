@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "System Information" %}{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+    {{ tab_group.render }}
+    <div class="version_label">
+      {% blocktrans with version_info=version %}Version: {{ version_info }}
+      {% endblocktrans %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Edit IPSec Policy" %}{% endblock %}
+
+{% block main %}
+  {% include 'project/vpn/_update_ipsecpolicy.html' %}
+{% endblock %}

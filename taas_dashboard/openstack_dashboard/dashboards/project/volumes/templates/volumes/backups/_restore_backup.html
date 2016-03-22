@@ -1,0 +1,7 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+
+{% block modal-body-right %}
+  <p><strong>{% trans "Restore Backup:" %}</strong> {% trans "Select a volume to restore to." %}</p>
+  <p>{% trans "Optionally, you may choose to create a new volume." %}</p>
+{% endblock %}

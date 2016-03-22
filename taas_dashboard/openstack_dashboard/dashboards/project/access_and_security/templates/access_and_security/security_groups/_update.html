@@ -1,0 +1,7 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+
+{% block modal-body-right %}
+  <h3>{% trans "Description:" %}</h3>
+  <p>{% trans "Security groups are sets of IP filter rules that are applied to the network settings for the VM. Edit the security group to add and change the rules." %}</p>
+{% endblock %}

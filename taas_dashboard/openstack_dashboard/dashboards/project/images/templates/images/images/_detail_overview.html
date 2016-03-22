@@ -1,0 +1,76 @@
+{% load i18n sizeformat %}
+
+<h3>{% trans "Image Overview" %}</h3>
+
+<div class="info row detail">
+  <h4>{% trans "Information" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ image.name|default:_("None") }}</dd>
+    {% if image.properties.description %}
+      <dt>{% trans "Description" %}</dt>
+      <dd>{{ image.properties.description }}</dd>
+    {% endif %}
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ image.id|default:_("None") }}</dd>
+    <dt>{% trans "Owner" %}</dt>
+    <dd>{{ image.owner }}</dd>
+    <dt>{% trans "Status" %}</dt>
+    <dd>{{ image.status|default:_("Unknown")|title }}</dd>
+    <dt>{% trans "Public" %}</dt>
+    <dd>{{ image.is_public|yesno|capfirst }}</dd>
+    <dt>{% trans "Protected" %}</dt>
+    <dd>{{ image.protected|yesno|capfirst }}</dd>
+    <dt>{% trans "Checksum" %}</dt>
+    <dd>{{ image.checksum }}</dd>
+    <dt>{% trans "Created" %}</dt>
+    {% if image.created_at %}
+      <dd>{{ image.created_at|parse_isotime }}</dd>
+    {% else %}
+      <dd>{% trans "Unknown" %}</dd>
+    {% endif %}
+    <dt>{% trans "Updated" %}</dt>
+    {% if image.updated_at %}
+      <dd>{{ image.updated_at|parse_isotime }}</dd>
+    {% else %}
+      <dd>{% trans "Never updated" %} }}</dd>
+    {% endif %}
+  </dl>
+</div>
+
+<div class="specs row detail">
+  <h4>{% trans "Specs" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Size" %}</dt>
+    <dd>{{ image.size|filesizeformat }}</dd>
+    {% if image.virtual_size %}
+      <dt>{% trans "Virtual Size" %}</dt>
+      <dd>{{ image.virtual_size|filesizeformat }}</dd>
+    {% endif %}
+    <dt>{% trans "Container Format" %}</dt>
+    <dd>{{ image.container_format|default:_("None")|upper }}</dd>
+    <dt>{% trans "Disk Format" %}</dt>
+    <dd>{{ image.disk_format|default:_("None")|upper }}</dd>
+    {% if image.min_disk %}
+      <dt>{% trans "Min Disk" %}</dt>
+      <dd>{{ image.min_disk|diskgbformat }}</dd>
+    {% endif %}
+    {% if image.min_ram %}
+      <dt>{% trans "Min RAM" %}</dt>
+      <dd>{{ image.min_ram|mb_float_format }}</dd>
+    {% endif %}
+  </dl>
+</div>
+
+<div class="properties row detail">
+  <h4>{% trans "Custom Properties" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    {% for prop, title, val in image_props %}
+      <dt title="{{ prop }}">{{ title }}</dt>
+      <dd>{{ val }}</dd>
+    {% endfor %}
+  </dl>
+</div>

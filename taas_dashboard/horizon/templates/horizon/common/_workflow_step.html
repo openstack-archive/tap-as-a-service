@@ -1,0 +1,9 @@
+<noscript><h3>{{ step }}</h3></noscript>
+<div class="row">
+  <div class="col-sm-6">
+    {% include "horizon/common/_form_fields.html" %}
+  </div>
+  <div class="col-sm-6">
+    {{ step.get_help_text }}
+  </div>
+</div>

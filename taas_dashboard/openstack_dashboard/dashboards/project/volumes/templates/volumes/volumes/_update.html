@@ -1,0 +1,8 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+
+{% block modal-body-right %}
+  <h3>{% trans "Description:" %}</h3>
+  <p>{% trans "Modify name and description of a volume." %}</p>
+  <p>{% trans 'The "Bootable" flag specifies that this volume can be used to launch an instance.' %}</p>
+{% endblock %}

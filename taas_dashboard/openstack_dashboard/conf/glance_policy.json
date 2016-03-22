@@ -1,0 +1,52 @@
+{
+    "context_is_admin":  "role:admin",
+    "admin_or_owner":  "is_admin:True or project_id:%(project_id)s",
+    "default": "rule:admin_or_owner",
+
+    "add_image": "",
+    "delete_image": "rule:admin_or_owner",
+    "get_image": "",
+    "get_images": "",
+    "modify_image": "rule:admin_or_owner",
+    "publicize_image": "",
+    "copy_from": "",
+
+    "download_image": "",
+    "upload_image": "",
+
+    "delete_image_location": "",
+    "get_image_location": "",
+    "set_image_location": "",
+
+    "add_member": "",
+    "delete_member": "",
+    "get_member": "",
+    "get_members": "",
+    "modify_member": "",
+
+    "manage_image_cache": "role:admin",
+
+    "get_task": "",
+    "get_tasks": "",
+    "add_task": "",
+    "modify_task": "",
+
+    "get_metadef_namespace": "",
+    "get_metadef_namespaces":"",
+    "modify_metadef_namespace":"",
+    "add_metadef_namespace":"",
+    "delete_metadef_namespace":"",
+
+    "get_metadef_object":"",
+    "get_metadef_objects":"",
+    "modify_metadef_object":"",
+    "add_metadef_object":"",
+
+    "list_metadef_resource_types":"",
+    "add_metadef_resource_type_association":"",
+
+    "get_metadef_property":"",
+    "get_metadef_properties":"",
+    "modify_metadef_property":"",
+    "add_metadef_property":""
+}

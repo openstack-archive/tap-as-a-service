@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Restore Volume Backup" %}{% endblock %}
+
+{% block main %}
+    {% include 'project/volumes/backups/_restore_backup.html' %}
+{% endblock %}

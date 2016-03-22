@@ -1,0 +1,27 @@
+# The order of packages is significant, because pip processes them in the order
+# of appearance. Changing the order has an impact on the overall integration
+# process, which may cause wedges in the gate later.
+# Order matters to the pip dependency resolver, so sorting this file
+# changes how packages are installed.  New dependencies should be
+# added in alphabetical order, however, some dependencies may need to
+# be installed in a specific order.
+#
+# Hacking should appear first in case something else depends on pep8
+hacking<0.11,>=0.10.0
+#
+coverage>=3.6
+django-nose
+mock<1.1.0,>=1.0
+mox>=0.5.3
+nodeenv>=0.9.4 # BSD License
+nose
+nose-exclude
+nosehtmloutput>=0.0.3
+nosexcover
+openstack.nose-plugin>=0.7
+oslosphinx<2.6.0,>=2.5.0 # Apache-2.0
+selenium
+sphinx!=1.2.0,!=1.3b1,<1.3,>=1.1.2
+testtools!=1.2.0,>=0.9.36
+# This also needs xvfb library installed on your OS
+xvfbwrapper>=0.1.3 #license: MIT

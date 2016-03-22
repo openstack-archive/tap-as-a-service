@@ -1,0 +1,27 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load horizon i18n %}
+
+{% block modal-body-right %}
+<div class="quota-dynamic">
+  <h3>{% trans "Description:" %}</h3>
+  <p>{% trans "Allocate a floating IP from a given floating IP pool." %}</p>
+
+  <h3>{% trans "Project Quotas" %}</h3>
+  <div class="quota_title">
+    <strong>{% trans "Floating IP" %} <span>({{ usages.floating_ips.used }})</span></strong>
+    <p>{{ usages.floating_ips.available|quota }}</p>
+  </div>
+  <div class="clearfix"></div>
+  <div id="floating_ip_progress" class="quota_bar" data-quota-used="{{ usages.floating_ips.used }}" data-quota-limit="{{ usages.floating_ips.quota }}" data-progress-indicator-step-by="1"></div>
+</div>
+
+  <script type="text/javascript" charset="utf-8">
+    if(typeof horizon.Quota !== 'undefined') {
+      horizon.Quota.init();
+    } else {
+      addHorizonLoadEvent(function() {
+        horizon.Quota.init();
+      });
+    }
+  </script>
+{% endblock %}

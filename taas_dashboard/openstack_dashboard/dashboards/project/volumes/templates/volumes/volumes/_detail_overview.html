@@ -1,0 +1,99 @@
+{% load i18n sizeformat parse_date %}
+{% load url from future %}
+
+<h3>{% trans "Volume Overview" %}</h3>
+
+<div class="info row detail">
+  <h4>{% trans "Information" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ volume.name }}</dd>
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ volume.id }}</dd>
+    {% if volume.description %}
+    <dt>{% trans "Description" %}</dt>
+    <dd>{{ volume.description }}</dd>
+    {% endif %}
+    <dt>{% trans "Status" %}</dt>
+    <dd>{{ volume.status|capfirst }}</dd>
+  </dl>
+</div>
+
+<div class="specs row detail">
+  <h4>{% trans "Specs" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Size" %}</dt>
+    <dd>{{ volume.size }} {% trans "GB" %}</dd>
+    <dt>{% trans "Created" context "Created time" %}</dt>
+    <dd>{{ volume.created_at|parse_date }}</dd>
+  </dl>
+</div>
+
+<div class="status row detail">
+  <h4>{% trans "Attachments" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+  {% for attachment in volume.attachments %}
+    <dt>{% trans "Attached To" %}</dt>
+    <dd>
+      {% url 'horizon:project:instances:detail' attachment.server_id as instance_url %}
+      {% blocktrans with instance_name=attachment.instance.name device=attachment.device %}
+      <a href="{{ instance_url }}">{{ instance_name }}</a> on {{ device }}
+      {% endblocktrans %}
+    </dd>
+  {% empty %}
+    <dt>{% trans "Attached To" %}</dt>
+    <dd><em>{% trans "Not attached" %}</em></dd>
+  {% endfor %}
+  </dl>
+</div>
+
+{% if volume.volume_image_metadata %}
+<div class="status row detail">
+  <h4>{% trans "Volume Source" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Image" %}</dt>
+    <dd>
+      {% url 'horizon:project:images:images:detail' volume.volume_image_metadata.image_id as image_url %}
+      <a href="{{ image_url }}">{{ volume.volume_image_metadata.image_name }}</a>
+    </dd>
+  </dl>
+</div>
+{% endif %}
+
+<div class="status row detail">
+  <h4>{% trans "Metadata" %}</h4>
+  <hr class="header_rule">
+  <dl class="dl-horizontal">
+  {% if volume.metadata.items %}
+      {% for key, value in volume.metadata.items %}
+          <dt>{{ key }}</dt>
+          <dd>{{ value }}</dd>
+      {% endfor %}
+  {% else %}
+      <dd>{% trans "None" %}</dd>
+  {% endif %}
+  </dl>
+</div>
+
+{% if volume.transfer %}
+<div class="status row detail">
+  <h4>{% trans "Volume Transfer" %}</h4>
+  <hr class="header_rule">
+  <dl>
+      <dt>{% trans "ID" %}</dt>
+      <dd>{{ volume.transfer.id }}</dd>
+  </dl>
+  <dl>
+      <dt>{% trans "Name" %}</dt>
+      <dd>{{ volume.transfer.name }}</dd>
+  </dl>
+  <dl>
+      <dt>{% trans "Created" context "Created time" %}</dt>
+      <dd>{{ volume.transfer.created_at|parse_date }}</dd>
+  </dl>
+</div>
+{% endif %}

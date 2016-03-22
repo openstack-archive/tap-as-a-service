@@ -1,0 +1,8 @@
+<!-- Dropdown button -->
+<button type="button" tabindex="0"
+  class="single-button dropdown-toggle {$ disabled ? 'disabled' : '' $}"
+  ng-class="actionClasses"
+  ng-click="disabled || callback(item)">
+  <ng-transclude></ng-transclude>
+  <span class="caret"></span>
+</button>
