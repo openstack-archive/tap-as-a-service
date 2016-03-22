@@ -1,0 +1,11 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+
+{% block modal-body-right %}
+  <h3>{% trans "Description:" %}</h3>
+  <p>{% blocktrans %}
+    Each QoS Specs entity will have a "Consumer" value which indicates where the
+    administrator would like the QoS policy to be enforced. This value can be "front-end"
+    (Nova Compute), "back-end" (Cinder back-end), or "both".
+    {% endblocktrans %}</p>
+{% endblock %}

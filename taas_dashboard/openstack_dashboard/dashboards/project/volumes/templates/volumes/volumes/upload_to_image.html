@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Upload Volume to Image" %}{% endblock %}
+
+{% block main %}
+    {% include 'project/volumes/volumes/_upload_to_image.html' %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Edit Snapshot" %}{% endblock %}
+
+{% block main %}
+    {% include 'project/volumes/snapshots/_update.html' %}
+{% endblock %}

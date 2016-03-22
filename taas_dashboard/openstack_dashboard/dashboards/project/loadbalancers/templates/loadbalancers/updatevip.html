@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Edit VIP" %}{% endblock %}
+
+{% block main %}
+  {% include 'project/loadbalancers/_updatevip.html' %}
+{% endblock %}

@@ -1,0 +1,8 @@
+<!-- Dropdown menu item -->
+<li role="presentation" ng-class="{ disabled: disabled }">
+  <a role="menuitem" href="#" dropdown-toggle
+    ng-class="actionClasses"
+    ng-click="disabled || callback(item)">
+    <ng-transclude></ng-transclude>
+  </a>
+</li>

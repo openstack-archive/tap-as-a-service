@@ -1,0 +1,32 @@
+{% extends "horizon/client_side/template.html" %}
+{% load horizon %}
+
+{% block id %}balloon_container{% endblock %}
+
+{% block template %}
+{% jstemplate %}
+<div class="topologyBalloon" id="[[balloon_id]]">
+  <a href="#close" class="closeTopologyBalloon">&times;</a>
+  <div class="contentBody">
+    [[> table1]]
+    [[> table2]]
+  </div>
+  <div class="footer">
+    <div class="footerInner">
+      <div class="cell link">
+        <a href="[[url]]">» [[view_details_label]]</a>
+        {% comment %}The Console link is available if settings.CONSOLE_TYPE is not set at all, or if it's set to any value other than None or False.{% endcomment %}
+        {% if console_type %}
+            [[#console_id]]
+            <a href="[[url]][[console]]" class="vnc_window">» [[open_console_label]]</a>
+            [[/console_id]]
+        {%  endif %}
+      </div>
+      <div class="cell delete">
+        <button class="delete-device btn btn-danger btn-xs [[type]]" data-type="[[type]]"  data-device-id="[[id]]">[[delete_label]]</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endjstemplate %}
+{% endblock %}

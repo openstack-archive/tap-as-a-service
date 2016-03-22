@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Live Migrate" %}{% endblock %}
+
+{% block main %}
+  {% include 'admin/instances/_live_migrate.html' %}
+{% endblock %}

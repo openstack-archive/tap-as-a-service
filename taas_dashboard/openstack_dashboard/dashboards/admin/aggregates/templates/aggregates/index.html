@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Host Aggregates" %}{% endblock %}
+
+{% block main %}
+  <div id="host-aggregates">
+      {{ host_aggregates_table.render }}
+  </div>
+
+  <div id="availability-zones">
+      {{ availability_zones_table.render }}
+  </div>
+{% endblock %}

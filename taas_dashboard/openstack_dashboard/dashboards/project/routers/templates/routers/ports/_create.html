@@ -1,0 +1,31 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block form_id %}add_interface_form{% endblock %}
+{% block form_action %}{% url 'horizon:project:routers:addinterface' router.id %}
+{% endblock %}
+
+{% block modal-header %}{% trans "Add Interface" %}{% endblock %}
+
+{% block modal-body %}
+<div class="left">
+    <fieldset>
+        {% include "horizon/common/_form_fields.html" %}
+    </fieldset>
+</div>
+<div class="right">
+    <h3>{% trans "Description:" %}</h3>
+    <p>
+      {% trans "You can connect a specified subnet to the router." %}
+    </p>
+    <p>
+      {% trans "The default IP address of the interface created is a gateway of the selected subnet. You can specify another IP address of the interface here. You must select a subnet to which the specified IP address belongs to from the above list." %}
+    </p>
+</div>
+{% endblock %}
+
+{% block modal-footer %}
+  <input class="btn btn-primary pull-right" type="submit" value="{% trans "Add interface" %}" />
+  <a href="{% url 'horizon:project:routers:index' %}" class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>
+{% endblock %}

@@ -1,0 +1,48 @@
+<div class="transfer-table">
+  <!-- Allocation -->
+  <div class="transfer-section">
+    <!-- Allocated section heading -->
+    <h5 class="transfer-heading">
+      <span title="{$ ::trCtrl.helpText.sectionToggleText $}" class="fa"
+        ng-if="::(trCtrl.limits.maxAllocation !== 1)"
+        ng-class="trCtrl.views.allocated ? 'fa-chevron-down' : 'fa-chevron-right'"
+        ng-click="trCtrl.toggleView('allocated')"></span>
+        {$ ::trCtrl.helpText.allocTitle $}
+      <span ng-if="::(trCtrl.limits.maxAllocation !== 1)"
+        ng-show="trCtrl.numAllocated()"
+        class="badge badge-info">{$ trCtrl.numAllocated() $}</span>
+      <span class="pull-right help-text" ng-if="::trCtrl.helpText.allocHelpText">
+        {$ ::trCtrl.helpText.allocHelpText $}
+      </span>
+    </h5>
+    <!-- Help text when allocated section collapsed -->
+    <div class="collapsed-help" ng-hide="trCtrl.views.allocated">
+      {$ ::trCtrl.helpText.allocHiddenText $}
+    </div>
+    <div class="transfer-allocated" ng-show="trCtrl.views.allocated">
+      <!-- Allocated table transcluded here -->
+    </div>
+  </div>
+
+  <!-- Available -->
+  <div class="transfer-section">
+    <!-- Available section heading -->
+    <h5 class="transfer-heading">
+      <span class="fa" title="{$ ::trCtrl.helpText.sectionToggleText $}"
+        ng-class="trCtrl.views.available ? 'fa-chevron-down' : 'fa-chevron-right'"
+        ng-click="trCtrl.toggleView('available')"></span>
+        {$ ::trCtrl.helpText.availTitle $}
+      <span class="badge badge-info">{$ trCtrl.numAvailable $}</span>
+      <span class="pull-right help-text" ng-if="::trCtrl.helpText.availHelpText">
+        {$ ::trCtrl.helpText.availHelpText $}
+      </span>
+    </h5>
+    <!-- Help text when available section collapsed -->
+    <div class="collapsed-help" ng-hide="trCtrl.views.available">
+      {$ ::trCtrl.helpText.availHiddenText $}
+    </div>
+    <div class="transfer-available" ng-show="trCtrl.views.available">
+      <!-- Available table transcluded here -->
+    </div>
+  </div>
+</div>
