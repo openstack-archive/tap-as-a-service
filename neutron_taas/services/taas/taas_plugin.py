@@ -110,10 +110,8 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
     def create_tap_service(self, context, tap_service):
         LOG.debug("create_tap_service() called")
 
-        tenant_id = self._get_tenant_id_for_create(context,
-                                                   tap_service['tap_service'])
-
         t_s = tap_service['tap_service']
+        tenant_id = t_s['tenant_id']
         port_id = t_s['port_id']
 
         # Get port details
@@ -192,10 +190,8 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
     def create_tap_flow(self, context, tap_flow):
         LOG.debug("create_tap_flow() called")
 
-        tenant_id = self._get_tenant_id_for_create(context,
-                                                   tap_flow['tap_flow'])
-
         t_f = tap_flow['tap_flow']
+        tenant_id = t_f['tenant_id']
 
         # Check if the tenant id of the source port is the same as the
         # tenant_id of the tap service we are attaching it to.
