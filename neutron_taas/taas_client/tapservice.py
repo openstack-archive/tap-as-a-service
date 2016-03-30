@@ -59,12 +59,16 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
 
     def add_known_arguments(self, parser):
         _add_updatable_args(parser)
+        '''
+        (ToDo: Reedip)
+        Add this option later when port is supported
         parser.add_argument(
             '--port',
             dest='port_id',
             required=True,
             metavar="PORT",
             help=_('Port to which the Tap service is connected.'))
+        '''
         parser.add_argument(
             '--network',
             dest='network_id',
@@ -74,14 +78,10 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
 
     def args2body(self, parsed_args):
         client = self.get_client()
-        port_id = neutronv20.find_resourceid_by_name_or_id(
-            client, 'port',
-            parsed_args.port_id)
         network_id = neutronv20.find_resourceid_by_name_or_id(
             client, 'network',
             parsed_args.network_id)
-        body = {'port_id': port_id,
-                'network_id': network_id,
+        body = {'network_id': network_id,
                 'tenant_id': parsed_args.tenant_id}
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}
