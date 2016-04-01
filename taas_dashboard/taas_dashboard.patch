@@ -1,0 +1,2839 @@
+diff --git a/horizon/static/horizon/js/horizon.networktopology.js b/horizon/static/horizon/js/horizon.networktopology.js
+index a43ef37..9dfb7b9 100644
+--- a/horizon/static/horizon/js/horizon.networktopology.js
++++ b/horizon/static/horizon/js/horizon.networktopology.js
+@@ -18,11 +18,17 @@ horizon.network_topology = {
+   },
+   instance_tmpl: {
+     small:'#topology_template > .instance_small',
+-    normal:'#topology_template > .instance_normal'
++    normal:'#topology_template > .instance_normal',
++    small_taps:'#topology_template > .instance_small_taps',
++    normal_taps:'#topology_template > .instance_normal_taps',
++    small_tapf:'#topology_template > .instance_small_tapf',
++    normal_tapf:'#topology_template > .instance_normal_tapf'
+   },
+   balloon_tmpl : null,
+   balloon_device_tmpl : null,
+   balloon_port_tmpl : null,
++  balloon_tapservice_tmpl : null,
++  balloon_tapflow_tmpl : null,
+   network_index: {},
+   balloon_id:null,
+   reload_duration: 10000,
+@@ -76,6 +82,8 @@ horizon.network_topology = {
+     self.balloon_tmpl = Hogan.compile($('#balloon_container').html());
+     self.balloon_device_tmpl = Hogan.compile($('#balloon_device').html());
+     self.balloon_port_tmpl = Hogan.compile($('#balloon_port').html());
++    self.balloon_tapservice_tmpl = Hogan.compile($('#balloon_tapservice').html());
++    self.balloon_tapflow_tmpl = Hogan.compile($('#balloon_tapflow').html());
+ 
+     $(document)
+       .on('click', 'a.closeTopologyBalloon', function(e) {
+@@ -174,6 +182,18 @@ horizon.network_topology = {
+       $.each(model, function(index, device) {
+         device.type = type;
+         device.ports = self.select_port(device.id);
++        if (device.taps == "true") {
++          device.tapservices = self.select_tapservice(device.ports);
++        }
++        else {
++          device.tapservices = [];
++        }
++        if (device.tapf == "true") {
++          device.tapflows = self.select_tapflow(device.ports);
++        }
++        else {
++          device.tapflows = [];
++        }
+         var hasports = (device.ports.length <= 0) ? false : true;
+         device.parent_network = (hasports) ?
+           self.select_main_port(device.ports).network_id : self.model.networks[0].id;
+@@ -300,6 +320,14 @@ horizon.network_topology = {
+       .attr('class','device')
+       .each(function(d){
+         var device_template = self[d.type + '_tmpl'][self.draw_mode];
++	if (d.type == 'instance' &&
++	    d.taps == "true") {
++            device_template = self.instance_tmpl[self.draw_mode + '_taps'];
++        }
++        else if (d.type == 'instance' &&
++            d.tapf == "true") {
++            device_template = self.instance_tmpl[self.draw_mode + '_tapf'];
++        }
+         this.appendChild(d3.select(device_template).node().cloneNode(true));
+       });
+ 
+@@ -458,6 +486,28 @@ horizon.network_topology = {
+       }
+     });
+   },
++  select_tapservice: function(ports){
++    var local_tapservices = [];
++    $.each(this.model.tapservices, function(index, tapservice){
++      $.each(ports, function(index, port) {
++        if (tapservice.port_id === port.id) {
++          local_tapservices.push(tapservice);
++        }
++      });
++    });
++    return local_tapservices;
++  },
++  select_tapflow: function(ports){
++    var local_tapflows = [];
++    $.each(this.model.tapflows, function(index, tapflow){
++      $.each(ports, function(index, port) {
++        if (tapflow.port_id === port.id) {
++          local_tapflows.push(tapflow);
++        }
++      });
++    });
++    return local_tapflows;
++  },
+   select_main_port: function(ports){
+     var _self = this;
+     var main_port_index = 0;
+@@ -506,6 +556,16 @@ horizon.network_topology = {
+     var message = {id:port_id};
+     self.post_message(port_id, 'router/' + router_id + '/', message);
+   },
++  delete_tapservice: function(tapservice_id) {
++    var self = this;
++    var message = {id:tapservice_id};
++    self.post_message(tapservice_id, 'deletetapservice', message);
++  },
++  delete_tapflow: function(tap_service_id, tapflow_id) {
++    var self = this;
++    var message = {id:tapflow_id};
++    self.post_message(tapflow_id, 'tapservice/' + tap_service_id + '/', message);
++  },
+   show_balloon:function(d,element) {
+     var self = this;
+     var element_properties = self.element_properties[self.draw_mode];
+@@ -515,6 +575,8 @@ horizon.network_topology = {
+     var balloon_tmpl = self.balloon_tmpl;
+     var device_tmpl = self.balloon_device_tmpl;
+     var port_tmpl = self.balloon_port_tmpl;
++    var tapservice_tmpl = self.balloon_tapservice_tmpl;
++    var tapflow_tmpl = self.balloon_tapflow_tmpl;
+     var balloon_id = 'bl_' + d.id;
+     var ports = [];
+     $.each(d.ports,function(i, port){
+@@ -541,6 +603,23 @@ horizon.network_topology = {
+       object.is_interface = (device_owner === 'router_interface');
+       ports.push(object);
+     });
++    var tapservices = [];
++    $.each(d.tapservices,function(i, tapservice){
++      var object = {};
++      object.id = tapservice.id;
++      object.name = tapservice.name;
++      object.url = tapservice.url;
++      tapservices.push(object);
++    });
++    var tapflows = [];
++    $.each(d.tapflows,function(i, tapflow){
++      var object = {};
++      object.id = tapflow.id;
++      object.name = tapflow.name;
++      object.url = tapflow.url;
++      object.tap_service_id = tapflow.tap_service_id;
++      tapflows.push(object);
++    });
+     var html;
+     var html_data = {
+       balloon_id:balloon_id,
+@@ -573,8 +652,21 @@ horizon.network_topology = {
+       html_data.view_details_label = gettext("View Instance Details");
+       html_data.console_id = d.id;
+       html_data.console = d.console;
++      html_data.port = ports;
++      html_data.tapservice = tapservices;
++      html_data.tapflow = tapflows;
++      html_data.tapservice_label = gettext("Tap Service");
++      html_data.tapservice_name = tapservices.name;
++      html_data.delete_tapservice_label = gettext("Delete Tap Service");
++      html_data.tapflow_label = gettext("Tap Flow");
++      html_data.create_tapflow_url = d.url + "createtapflow";
++      html_data.create_tapflow_label = gettext("Create Tap Flow");
++      html_data.delete_tapflow_label = gettext("Delete Tap Flow");
++      html_data.tapflow_name = tapflows.name;
+       html = balloon_tmpl.render(html_data,{
+-        table1:device_tmpl
++        table1:device_tmpl,
++        table3:(d.taps == "true") ? tapservice_tmpl : null,
++        table4:(this.model.tapservices.length > 0 && d.taps == "false") ? tapflow_tmpl : null
+       });
+     } else {
+       return;
+@@ -613,6 +705,14 @@ horizon.network_topology = {
+       var $this = $(this);
+       self.delete_port($this.data('router-id'),$this.data('port-id'));
+     });
++    $balloon.find('.delete-tapservice').click(function(){
++      var $this = $(this);
++      self.delete_tapservice($this.data('tapservice-id'));
++    });
++    $balloon.find('.delete-tapflow').click(function(){
++      var $this = $(this);
++      self.delete_tapflow($this.data('tapservice-id'),$this.data('tapflow-id'));
++    });
+     self.balloon_id = balloon_id;
+   },
+   delete_balloon:function() {
+diff --git a/openstack_dashboard/api/network.py b/openstack_dashboard/api/network.py
+index f5a4dcd..f008b6e 100644
+--- a/openstack_dashboard/api/network.py
++++ b/openstack_dashboard/api/network.py
+@@ -39,6 +39,11 @@ class NetworkClient(object):
+         else:
+             self.secgroups = nova.SecurityGroupManager(request)
+ 
++        #####
++        if (neutron_enabled and
++                neutron.is_extension_supported(request, 'taas')):
++            self.taps = neutron.TapManager(request)
++        #####
+ 
+ def floating_ip_pools_list(request):
+     return NetworkClient(request).floating_ips.list_pools()
+@@ -68,6 +73,47 @@ def floating_ip_associate(request, floating_ip_id, port_id):
+ def floating_ip_disassociate(request, floating_ip_id):
+     return NetworkClient(request).floating_ips.disassociate(floating_ip_id)
+ 
++#####
++def taas_supported(request):
++    return NetworkClient(request).taps.is_supported()
++
++def tap_service_exist(request):
++    return NetworkClient(request).taps.tap_service_exist()
++
++def is_monitor(request, port_id):
++    return NetworkClient(request).taps.is_monitor(port_id)
++
++def port_has_tapf(request, port_id):
++    return NetworkClient(request).taps.port_has_tapf(port_id)
++
++def port_has_taps(request, port_id):
++    return NetworkClient(request).taps.port_has_taps(port_id)
++
++def list_tap_flow(request, tap_service_id):
++    return NetworkClient(request).taps.list_tap_flow(tap_service_id)
++
++def show_tap_flow(request, tap_flow_id):
++    return NetworkClient(request).taps.show_tap_flow(tap_flow_id)
++
++def create_tap_flow(request, direction, tap_service_id, port_id, **params):
++    return NetworkClient(request).taps.create_tap_flow(direction, tap_service_id, port_id, **params)
++
++def delete_tap_flow(request, tap_flow_id):
++    return NetworkClient(request).taps.delete_tap_flow(tap_flow_id)
++
++def list_tap_service(request):
++    return NetworkClient(request).taps.list_tap_service()
++
++def show_tap_service(request, tap_service_id):
++    return NetworkClient(request).taps.show_tap_service(tap_service_id)
++
++def create_tap_service(request, port_id, **params):
++    return NetworkClient(request).taps.create_tap_service(port_id, **params)
++
++def delete_tap_service(request, tap_service_id):
++    return NetworkClient(request).taps.delete_tap_service(tap_service_id)
++#####
++
+ 
+ def floating_ip_target_list(request):
+     return NetworkClient(request).floating_ips.list_targets()
+diff --git a/openstack_dashboard/api/network_base.py b/openstack_dashboard/api/network_base.py
+index 3acda5d..de96859 100644
+--- a/openstack_dashboard/api/network_base.py
++++ b/openstack_dashboard/api/network_base.py
+@@ -23,6 +23,61 @@ import abc
+ 
+ import six
+ 
++#####
++@six.add_metaclass(abc.ABCMeta)
++class TapManager(object):
++    @abc.abstractmethod
++    def tap_service_exist(self):
++        pass
++
++    @abc.abstractmethod
++    def is_monitor(self, port_id):
++        pass
++
++    @abc.abstractmethod
++    def port_has_tapf(self, port_id):
++        pass
++
++    @abc.abstractmethod
++    def port_has_taps(self, port_id):
++        pass
++
++    @abc.abstractmethod
++    def list_tap_flow(self, tap_service_id):
++        pass
++
++    @abc.abstractmethod
++    def show_tap_flow(self, tap_flow_id):
++        pass
++
++    @abc.abstractmethod
++    def create_tap_flow(self, direction, tap_service_id, port_id, **params):
++        pass
++
++    @abc.abstractmethod
++    def delete_tap_flow(self, tap_flow_id):
++        pass
++
++    @abc.abstractmethod
++    def list_tap_service(self):
++        pass
++
++    @abc.abstractmethod
++    def show_tap_service(self, tap_service_id):
++        pass
++
++    @abc.abstractmethod
++    def create_tap_service(self, port_id, **params):
++        pass
++
++    @abc.abstractmethod
++    def delete_tap_service(self, tap_service_id):
++        pass
++
++    @abc.abstractmethod
++    def is_supported(self):
++        pass
++#####
+ 
+ @six.add_metaclass(abc.ABCMeta)
+ class FloatingIpManager(object):
+diff --git a/openstack_dashboard/api/neutron.py b/openstack_dashboard/api/neutron.py
+index 657ee3e..d5c5a3f 100644
+--- a/openstack_dashboard/api/neutron.py
++++ b/openstack_dashboard/api/neutron.py
+@@ -70,6 +70,141 @@ def _init_apiresource(apiresource):
+     })
+ 
+ 
++#####
++SUCCESS = 0
++FAILURE = 1
++
++class TapManager(network_base.TapManager):
++
++    def __init__(self, request):
++        self.request = request
++        self.client = neutronclient(request)
++
++    def tap_service_exist(self):
++        res = self.client.get('/taas/tap_services')
++
++        tap_services = res['tap_services']
++        if tap_services:
++            return True
++        else:
++            return False
++
++    def is_monitor(self, port_id):
++        res = self.client.get('/taas/tap_services')
++
++        tap_service_id = ''
++        tap_services = res['tap_services']
++        for tap_service in tap_services:
++            if port_id == tap_service['port_id']:
++                tap_service_id = tap_service['id']
++                break
++        if not tap_service_id == '':
++            return True
++        else:
++            return False 
++
++    def port_has_tapf(self, port_id):
++        tap_service_id = None
++        res = self.client.get("/taas/tap_flows")
++
++        tap_flow_id = ''
++        tap_flows = res['tap_flows']
++        for tap_flow in tap_flows:
++            if port_id == tap_flow['source_port']:
++                tap_flow_id = tap_flow['id']
++                break
++        if not tap_flow_id == '':
++            return True
++        else:
++            return False
++
++
++    def port_has_taps(self, port_id):
++        res = self.client.get("/taas/tap_services")
++
++        tap_service_id = ''
++        tap_services = res['tap_services']
++        for tap_service in tap_services:
++            if port_id == tap_service['port_id']:
++                tap_service_id = tap_service['id']
++                break
++        if not tap_service_id == '':
++            return True
++        else:
++            return False
++
++
++    def list_tap_flow(self, tap_service_id):
++        tap_flows = self.client.get("/taas/tap_flows")
++        return [TapFlow(tp) for tp in tap_flows.get('tap_flows')]
++
++
++    def show_tap_flow(self, tap_flow_id):
++        LOG.debug("tap_flow_show(): tapflowid=%s" % tap_flow_id)
++        tap_flow = self.client.get("/taas/tap_flows/%s" % tap_flow_id)
++        return TapFlow(tap_flow.get('tap_flow'))
++
++
++    def create_tap_flow(self, direction, tap_service_id, port_id, **params):
++        req_data = {}
++        req_data['tap_flow'] = {
++#            'tenant_id': self.tenant_id,
++            'name': params['name'],
++            'description': params['description'],
++             'source_port': port_id,
++             'direction': direction,
++             'tap_service_id': tap_service_id
++        }
++
++        res = self.client.post("/taas/tap_flows", req_data)
++        tap_flow = res.get('tap_flow')
++        return TapFlow(tap_flow)
++
++
++    def delete_tap_flow(self, tap_flow_id):
++        LOG.debug("tap_flow_delete(): tapflowid=%s" % tap_flow_id)
++        res = self.client.delete("/taas/tap_flows/%s" % tap_flow_id)
++
++    def list_tap_service(self):
++        tap_services = self.client.get('/taas/tap_services')
++        return [TapService(tp) for tp in tap_services.get('tap_services')]
++
++
++    def show_tap_service(self, tap_service_id):
++        LOG.debug("tap_service_show(): tapserviceid=%s" % tap_service_id)
++        tap_service = self.client.get('/taas/tap_services/%s' % tap_service_id)
++        return TapService(tap_service.get('tap_service'))
++
++
++    def create_tap_service(self, port_id, **params):
++        req_data = {}
++        req_data['tap_service'] = {
++            #'tenant_id': self.tenant_id,
++            'name': params['name'],
++            'description': params['description'],
++            'port_id': port_id
++        }
++
++        res = self.client.post("/taas/tap_services", req_data)
++        tap_service = res.get('tap_service')
++        return TapService(tap_service)
++
++
++    def delete_tap_service(self, tap_service_id):
++        LOG.debug("tap_service_delete(): tapserviceid=%s" % tap_service_id)
++        res = self.client.delete("/taas/tap_services/%s" % tap_service_id)
++
++
++    def is_supported(self):
++        if is_service_enabled(self.request,
++                              config_name='enable_taas',
++                              ext_name='taas'):
++            return True
++        else:
++            return False
++#####
++
++
+ class NeutronAPIDictWrapper(base.APIDictWrapper):
+ 
+     def set_id_as_name_if_empty(self, length=8):
+@@ -91,6 +226,22 @@ class NeutronAPIDictWrapper(base.APIDictWrapper):
+                 '(%s)' % self._apidict['id'][:13])
+ 
+ 
++#####
++class TapFlow(NeutronAPIDictWrapper):
++    """Wrapper for neutron tap flows."""
++
++    def __init__(self, apiresource):
++        super(TapFlow, self).__init__(apiresource)
++
++
++class TapService(NeutronAPIDictWrapper):
++    """Wrapper for neutron tap services."""
++
++    def __init__(self, apiresource):
++        super(TapService, self).__init__(apiresource)
++#####
++
++
+ class Agent(NeutronAPIDictWrapper):
+     """Wrapper for neutron agents."""
+ 
+diff --git a/openstack_dashboard/conf/neutron_policy.json b/openstack_dashboard/conf/neutron_policy.json
+index 79f0b6b..1627b34 100644
+--- a/openstack_dashboard/conf/neutron_policy.json
++++ b/openstack_dashboard/conf/neutron_policy.json
+@@ -174,5 +174,10 @@
+     "delete_metering_label_rule": "rule:admin_only",
+     "get_metering_label_rule": "rule:admin_only",
+ 
+-    "get_service_provider": "rule:regular_user"
++    "get_service_provider": "rule:regular_user",
++
++    "create_tap_service": "",
++    "delete_tap_service": "",
++    "create_tap_flow": "",
++    "delete_tap_flow": ""
+ }
+diff --git a/openstack_dashboard/dashboards/project/instances/tables.py b/openstack_dashboard/dashboards/project/instances/tables.py
+index 3720cae..ad0209b 100644
+--- a/openstack_dashboard/dashboards/project/instances/tables.py
++++ b/openstack_dashboard/dashboards/project/instances/tables.py
+@@ -44,6 +44,8 @@ from openstack_dashboard.dashboards.project.instances.workflows \
+     import resize_instance
+ from openstack_dashboard.dashboards.project.instances.workflows \
+     import update_instance
++from openstack_dashboard.dashboards.project.instances.workflows \
++    import create_tapflow
+ from openstack_dashboard import policy
+ 
+ 
+@@ -107,7 +109,35 @@ class TerminateInstance(policy.PolicyTargetMixin, tables.BatchAction):
+         return not is_deleting(instance)
+ 
+     def action(self, request, obj_id):
+-        api.nova.server_delete(request, obj_id)
++        if not api.network.taas_supported(request):
++            api.nova.server_delete(request, obj_id)
++        else:
++            try:
++                tap_services_pre = api.network.list_tap_service(request)
++                tap_flows_pre = api.network.list_tap_flow(request, [])
++                instance_id = obj_id
++                tap_services = []
++                for tap_service in tap_services_pre:
++                    tap_service_port_id = tap_service['port_id']
++                    tap_service_port_info = api.neutron.port_get(request, tap_service_port_id,)
++                    if tap_service_port_info.device_id == instance_id:
++                        tap_services = tap_services + [tap_service]
++                tap_flows = []
++                for tap_flow in tap_flows_pre:
++                    tap_flow_port_id = tap_flow['source_port']
++                    tap_flow_port_info = api.neutron.port_get(request, tap_flow_port_id,)
++                    if tap_flow_port_info.device_id == instance_id:
++                        tap_flows = tap_flows + [tap_flow]
++                if len(tap_services) == 0 and len(tap_flows) == 0:
++                    api.nova.server_delete(request, obj_id)
++                else:
++                    raise exceptions.NotAvailable()
++            except Exception:
++                msg = _(
++                    'There are one or more tap services or tap flows still connected to the instance.')
++                messages.error(request, msg)
++                redirect = urlresolvers.reverse("horizon:project:instances:index")
++                exceptions.handle(request, msg, redirect=redirect)
+ 
+ 
+ class RebootInstance(policy.PolicyTargetMixin, tables.BatchAction):
+@@ -901,6 +931,75 @@ def get_keyname(instance):
+         return keyname
+     return _("Not available")
+ 
++#######
++class CreateVirtualTap(policy.PolicyTargetMixin, tables.LinkAction):
++    name = "createtapflow"
++    verbose_name = _("Create Tap Flow")
++    url = "horizon:project:instances:createtapflow"
++    classes = ("ajax-modal",)
++    icon = "pencil"
++    policy_rules = (("network", "create_tap_flow"),)
++
++    def get_link_url(self, project):
++        return self._get_link_url(project, 'instance_info')
++
++    def _get_link_url(self, project, step_slug):
++        base_url = urlresolvers.reverse(self.url, args=[project.id])
++        next_url = self.table.get_full_url()
++        params = {"step": step_slug,
++                  create_tapflow.CreateTapFlow.redirect_param_name: next_url}
++        param = urlencode(params)
++        return "?".join([base_url, param])
++
++    def allowed(self, request, instance):
++        if not api.network.taas_supported(request):
++            return False
++        if not api.network.tap_service_exist(request):
++            return False 
++        if instance.status == "ERROR":
++            return False
++        instance_id = instance.id
++        ports_all = api.neutron.port_list(request,)
++        ports_instance = []
++        for port in ports_all:
++            if port.device_id == instance_id:
++                ports_instance = ports_instance + [port]
++        for port in ports_instance:
++            port_id = port.id
++            if api.network.is_monitor(request, port_id):
++                return False
++        return not is_deleting(instance)
++
++
++class DeleteVirtualTap(policy.PolicyTargetMixin, tables.LinkAction):
++    name = "deletetapflow"
++    verbose_name = _("Delete Tap Flow")
++    url = "horizon:project:instances:deletetapflow"
++    classes = ("btn-danger",)
++    policy_rules = (("network", "delete_tap_flow"),)
++
++    def allowed(self, request, instance):
++        if not api.network.taas_supported(request):
++            return False
++        if not api.network.tap_service_exist(request):
++            return False 
++        instance_id = instance.id
++        ports_all = api.neutron.port_list(request,)
++        ports_instance = []
++        for port in ports_all:
++            if port.device_id == instance_id:
++                ports_instance = ports_instance + [port]
++        for port in ports_instance:
++            port_id = port.id
++            if api.network.is_monitor(request, port_id):
++                return False
++        for port in ports_instance:
++            port_id = port.id
++            if api.network.port_has_tapf(request, port_id):
++                return True
++        return False 
++#######
++
+ 
+ def get_power_state(instance):
+     return POWER_STATES.get(getattr(instance, "OS-EXT-STS:power_state", 0), '')
+@@ -1103,7 +1202,8 @@ class InstancesTable(tables.DataTable):
+             launch_actions = (LaunchLinkNG,) + launch_actions
+         table_actions = launch_actions + (TerminateInstance,
+                                           InstancesFilterAction)
+-        row_actions = (StartInstance, ConfirmResize, RevertResize,
++        row_actions = (CreateVirtualTap, DeleteVirtualTap,
++                       StartInstance, ConfirmResize, RevertResize,
+                        CreateSnapshot, SimpleAssociateIP, AssociateIP,
+                        SimpleDisassociateIP, AttachInterface,
+                        DetachInterface, EditInstance,
+diff --git a/openstack_dashboard/dashboards/project/instances/tabs.py b/openstack_dashboard/dashboards/project/instances/tabs.py
+index 652888c..a44bb8b 100644
+--- a/openstack_dashboard/dashboards/project/instances/tabs.py
++++ b/openstack_dashboard/dashboards/project/instances/tabs.py
+@@ -25,17 +25,53 @@ from openstack_dashboard.dashboards.project.instances \
+ 
+ from openstack_dashboard import api
+ from openstack_dashboard.dashboards.project.instances import console
++from openstack_dashboard.dashboards.project.instances.tapflows \
++    import tables as tapf_tables
+ 
+ 
+-class OverviewTab(tabs.Tab):
++class OverviewTab(tabs.TableTab):
++    table_classes = (tapf_tables.TapFlowsTable,)
+     name = _("Overview")
+     slug = "overview"
+     template_name = ("project/instances/"
+                      "_detail_overview.html")
+ 
+     def get_context_data(self, request):
+-        return {"instance": self.tab_group.kwargs['instance'],
+-                "is_superuser": request.user.is_superuser}
++        context = super(OverviewTab, self).get_context_data(request)
++        if api.network.taas_supported(request):
++            context["tap_flow"] = self._get_tapflow_data()
++            context["tapflows_table"] = self._get_tapflow_data()
++            context["instance"] = self.tab_group.kwargs['instance']
++            context["is_superuser"] = request.user.is_superuser
++            context["is_taas"] = True 
++        else:
++            context["instance"] = self.tab_group.kwargs['instance']
++            context["is_superuser"] = request.user.is_superuser
++            context["is_taas"] = False
++        return context
++
++    def get_tapflows_data(self):
++        tap_flow = self._get_tapflow_data()
++        return tap_flow
++
++    def _get_tapflow_data(self):
++        try:
++            request = self.request
++            instance = self.tab_group.kwargs['instance']
++            instance_id = instance.id
++            tap_service_id = []
++            tap_flows_pre = api.network.list_tap_flow(self.request, tap_service_id)
++            tap_flows = []
++            for tap_flow in tap_flows_pre:
++                tap_flow_port_id = tap_flow['source_port']
++                tap_flow_port_info = api.neutron.port_get(self.request, tap_flow_port_id,)
++                if tap_flow_port_info.device_id == instance_id: 
++                    tap_flows = tap_flows + [tap_flow]
++        except Exception:
++            tap_flows = []
++            msg = _('Tap flow list can not be retrieved.')
++            exceptions.handle(self.request, msg)
++        return tap_flows
+ 
+ 
+ class LogTab(tabs.Tab):
+diff --git a/openstack_dashboard/dashboards/project/instances/tapflows/__init__.py b/openstack_dashboard/dashboards/project/instances/tapflows/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/openstack_dashboard/dashboards/project/instances/tapflows/tables.py b/openstack_dashboard/dashboards/project/instances/tapflows/tables.py
+new file mode 100644
+index 0000000..9f2873a
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/instances/tapflows/tables.py
+@@ -0,0 +1,86 @@
++import logging
++
++from django.core.urlresolvers import reverse
++from django import template
++from django.utils.translation import pgettext_lazy
++from django.utils.translation import ugettext_lazy as _
++from django.utils.translation import ungettext_lazy
++
++from horizon import exceptions
++from horizon import tables
++
++from openstack_dashboard import api
++from openstack_dashboard import policy
++
++LOG = logging.getLogger(__name__)
++
++
++class DeleteTapFlow(tables.DeleteAction):
++    @staticmethod
++    def action_present(count):
++        return ungettext_lazy(
++            u"Delete Tap Flow",
++            u"Delete Tap Flows",
++            count
++        )
++
++    @staticmethod
++    def action_past(count):
++        return ungettext_lazy(
++            u"Deleted Tap Flow",
++            u"Deleted Tap Flows",
++            count
++        )
++
++    policy_rules = (("network", "delete_tap_flow"),)
++
++    def delete(self, request, tap_flow_id):
++        tap_flow_name = tap_flow_id
++        try:
++            # Retrieve the network list.
++            api.network.delete_tap_flow(request, tap_flow_id)
++            LOG.debug('Deleted tap %s successfully', tap_flow_id)
++        except Exception:
++            msg = _('Failed to delete tap flow %s')
++            LOG.info(msg, tap_flow_id)
++            redirect = reverse("horizon:project:instances:index")
++            exceptions.handle(request, msg % tap_flow_name, redirect=redirect)
++
++
++class TapFlowsTable(tables.DataTable):
++    name = tables.Column("name_or_id",
++                         verbose_name=_("Name"),
++                         link="horizon:project:tapservices:tapflows:detail")
++    port_id = tables.Column("source_port",
++                            verbose_name=_("Port ID"))
++    tap_service_id = tables.Column("tap_service_id",
++                                   verbose_name=_("Tap Service ID"))
++
++    def get_object_display(self, obj):
++        return obj.id
++
++    class Meta(object):
++        name = "tapflows"
++        verbose_name = _("Tap Flows")
++        hidden_title = False
++
++
++class DeleteTapFlowTable(tables.DataTable):
++    name = tables.Column("name_or_id",
++                         verbose_name=_("Name"),
++                         link="horizon:project:tapservices:tapflows:detail")
++    port_id = tables.Column("source_port",
++                            verbose_name=_("Port ID"))
++    tap_service_id = tables.Column("tap_service_id",
++                                   verbose_name=_("Tap Service ID"))
++
++    def get_object_display(self, obj):
++        return obj.id
++
++    class Meta(object):
++        name = "tapflows"
++        verbose_name = _("Tap Flows")
++        table_actions = (DeleteTapFlow,)
++        row_actions = (DeleteTapFlow,)
++        hidden_title = False
++
+diff --git a/openstack_dashboard/dashboards/project/instances/templates/instances/_detail_overview.html b/openstack_dashboard/dashboards/project/instances/templates/instances/_detail_overview.html
+index 4d68ef9..fe1d199 100644
+--- a/openstack_dashboard/dashboards/project/instances/templates/instances/_detail_overview.html
++++ b/openstack_dashboard/dashboards/project/instances/templates/instances/_detail_overview.html
+@@ -148,3 +148,7 @@
+     {% endfor %}
+     </dl>
+ </div>
++
++{% if is_taas %}
++  {{ table.render }}
++{% endif %}
+diff --git a/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/create.html b/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/create.html
+new file mode 100644
+index 0000000..7a0c112
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/create.html
+@@ -0,0 +1,17 @@
++{% extends 'horizon/common/_workflow.html' %}
++{% load i18n %}
++{% load url from future %}
++
++{% block modal-footer %}
++  {% if workflow.wizard %}
++  <div class="row footer-row">
++    <a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>
++    <button type="button" class="btn btn-default button-previous">{% trans "&laquo;&nbsp;Back" %}</button>
++    <button type="button" class="btn btn-primary button-next">{% trans "Next&nbsp;&raquo;" %}</button>
++    <button type="submit" class="btn btn-primary button-final">{{ workflow.finalize_button_name }}</button>
++  </div>
++  {% else %}
++    <input class="btn btn-primary pull-right" type="submit" value="{{ workflow.finalize_button_name }}" />
++    {% if modal %}<a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>{% endif %}
++  {% endif %}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/detail.html b/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/detail.html
+new file mode 100644
+index 0000000..e68ab9b
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/instances/templates/instances/tapflows/detail.html
+@@ -0,0 +1,11 @@
++{% extends 'base.html' %}
++{% load i18n %}
++{% block title %}{% trans "Delete Tap Flows" %}{% endblock %}
++
++{% block main %}
++<div class="row">
++  <div class="col-sm-12">
++  {{ table.render }}
++  </div>
++</div>
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/instances/urls.py b/openstack_dashboard/dashboards/project/instances/urls.py
+index e89c9a1..9fbd75f 100644
+--- a/openstack_dashboard/dashboards/project/instances/urls.py
++++ b/openstack_dashboard/dashboards/project/instances/urls.py
+@@ -33,6 +33,8 @@ urlpatterns = patterns(
+     url(r'^launch$', views.LaunchInstanceView.as_view(), name='launch'),
+     url(r'^(?P<instance_id>[^/]+)/$',
+         views.DetailView.as_view(), name='detail'),
++    url(INSTANCES % 'createtapflow', views.CreateTapFlowView.as_view(), name='createtapflow'),
++    url(INSTANCES % 'deletetapflow', views.DeleteTapFlowView.as_view(), name='deletetapflow'),
+     url(INSTANCES % 'update', views.UpdateView.as_view(), name='update'),
+     url(INSTANCES % 'rebuild', views.RebuildView.as_view(), name='rebuild'),
+     url(INSTANCES % 'serial', views.SerialConsoleView.as_view(),
+diff --git a/openstack_dashboard/dashboards/project/instances/utils.py b/openstack_dashboard/dashboards/project/instances/utils.py
+index 2db5d2e..44bd070 100644
+--- a/openstack_dashboard/dashboards/project/instances/utils.py
++++ b/openstack_dashboard/dashboards/project/instances/utils.py
+@@ -155,3 +155,56 @@ def flavor_field_data(request, include_empty_option=False):
+     if include_empty_option:
+         return [("", _("No flavors available")), ]
+     return []
++
++
++def tap_service_filed_data(request, include_empty_option=False):
++    tap_services = []
++    try:
++        tap_services = api.network.list_tap_service(request)
++        tap_services = [(n.id, n) for n in tap_services]
++        tap_services.sort(key=lambda obj: obj[1])
++    except Exception as e:
++        msg = _('Failed to get tap service list {0}').format(six.text_type(e))
++        exceptions.handle(request, msg)
++
++    if not tap_services:
++        if include_empty_option:
++            return [("", _("No tap services available")), ]
++        return []
++
++    if include_empty_option:
++        return [("", _("Select Tap Service")), ] + tap_services
++    return tap_services
++
++
++def port_field_data(request, instance_id, include_empty_option=False):
++    """Returns a list of tuples of all ports.
++
++    Generates a list of ports available to the user (request). And returns
++    a list of (id, name) tuples.
++
++    :param request: django http request object
++    :param include_empty_option: flag to include a empty tuple in the front of
++    the list
++    :return: list of (id, name) tuples
++    """
++    ports = []
++    try:
++        ports_pre = api.neutron.port_list(request,)
++        for port in ports_pre:
++            if port.device_id == instance_id:
++                ports = ports + [port]
++        ports = [(n.id, n) for n in ports]
++        ports.sort(key=lambda obj: obj[1].name_or_id)
++    except Exception as e:
++        msg = _('Failed to get port list {0}').format(six.text_type(e))
++        exceptions.handle(request, msg)
++
++    if not ports:
++        if include_empty_option:
++            return [("", _("No ports available")), ]
++        return []
++
++    if include_empty_option:
++        return [("", _("Select Port")), ] + ports
++    return ports
+diff --git a/openstack_dashboard/dashboards/project/instances/views.py b/openstack_dashboard/dashboards/project/instances/views.py
+index 992bda9..6def27d 100644
+--- a/openstack_dashboard/dashboards/project/instances/views.py
++++ b/openstack_dashboard/dashboards/project/instances/views.py
+@@ -49,6 +49,8 @@ from openstack_dashboard.dashboards.project.instances \
+     import tabs as project_tabs
+ from openstack_dashboard.dashboards.project.instances \
+     import workflows as project_workflows
++from openstack_dashboard.dashboards.project.instances.tapflows \
++    import tables as tapf_tables
+ 
+ LOG = logging.getLogger(__name__)
+ 
+@@ -474,3 +476,42 @@ class DetachInterfaceView(forms.ModalFormView):
+ 
+     def get_initial(self):
+         return {'instance_id': self.kwargs['instance_id']}
++
++
++class CreateTapFlowView(workflows.WorkflowView):
++    workflow_class = project_workflows.CreateTapFlow
++    ajax_template_name = 'project/instances/tapflows/create.html'
++
++    def get_workflow(self):
++        extra_context = self.kwargs
++        entry_point = self.request.GET.get("step", None)
++        workflow = self.workflow_class(self.request,
++                                       context_seed=extra_context,
++                                       entry_point=entry_point,)
++        return workflow
++
++class DeleteTapFlowView(tables.DataTableView):
++    table_class = tapf_tables.DeleteTapFlowTable
++    template_name = 'project/instances/tapflows/detail.html'
++    page_title = _("Delete Tap Flows")
++
++    @memoized.memoized_method
++    def get_data(self):
++
++        try:
++            request = self.request
++            instance_id = self.kwargs['instance_id']
++            tap_service_id = []
++            tap_flows_pre = api.network.list_tap_flow(self.request, tap_service_id)
++            tap_flows = []
++            for tap_flow in tap_flows_pre:
++                tap_flow_port_id = tap_flow['source_port']
++                tap_flow_port_info = api.neutron.port_get(self.request, tap_flow_port_id,)
++                if tap_flow_port_info.device_id == instance_id:
++                    tap_flows = tap_flows + [tap_flow]
++        except Exception:
++            tap_flows = []
++            msg = _('Unable to retrieve subnet details.')
++            exceptions.handle(self.request, msg)
++
++        return tap_flows
+diff --git a/openstack_dashboard/dashboards/project/instances/workflows/__init__.py b/openstack_dashboard/dashboards/project/instances/workflows/__init__.py
+index 82f134a..5cf8157 100644
+--- a/openstack_dashboard/dashboards/project/instances/workflows/__init__.py
++++ b/openstack_dashboard/dashboards/project/instances/workflows/__init__.py
+@@ -3,3 +3,4 @@
+ from .create_instance import LaunchInstance  # noqa
+ from .resize_instance import ResizeInstance  # noqa
+ from .update_instance import UpdateInstance  # noqa
++from .create_tapflow import CreateTapFlow    # noqa
+diff --git a/openstack_dashboard/dashboards/project/instances/workflows/create_tapflow.py b/openstack_dashboard/dashboards/project/instances/workflows/create_tapflow.py
+new file mode 100644
+index 0000000..d97fc84
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/instances/workflows/create_tapflow.py
+@@ -0,0 +1,142 @@
++from django.core.urlresolvers import reverse
++from django.utils.translation import ugettext_lazy as _
++from django.views.decorators.debug import sensitive_variables
++
++from horizon import exceptions
++from horizon import forms
++from horizon import workflows
++
++from openstack_dashboard import api
++from openstack_dashboard.utils import filters
++from openstack_dashboard.dashboards.project.instances \
++    import utils as instance_utils
++
++
++class CreateTapFlowInfoAction(workflows.Action):
++    tap_flow_name = forms.CharField(max_length=255,
++                               label=_("Tap Flow Name"),
++                               required=False)
++    description = forms.CharField(max_length=255, label=_("Description"),
++                                  required=False)
++    direction = forms.ChoiceField(choices=[('BOTH', _('Both')),
++                                           ('IN', _('Ingress')),
++                                           ('OUT', _('Egress'))],
++                                  label=_("Direction"),
++                                  help_text=_("Whether to mirror the traffic"
++                                              " leaving or ariving at the source port."))
++
++    class Meta(object):
++        name = _("Information")
++        slug = 'instance_info'
++        help_text = _("Create a new tap flow.")
++
++
++class CreateTapFlowInfo(workflows.Step):
++    action_class = CreateTapFlowInfoAction
++    contributes = ("tap_flow_name", "description", "direction")
++
++
++class SelectTapServiceAction(workflows.Action):
++    tap_service = forms.ChoiceField(label=_("Tap Service"),
++                                    help_text=_("Create tap flow with"
++                                                " this tap service"),
++                                    widget=forms.SelectWidget(
++                                        transform=lambda x: ("%s (%s)" % (x.name, x.id))))
++
++    def __init__(self, request, *args, **kwargs):
++        super(SelectTapServiceAction, self).__init__(request, *args, **kwargs)
++        tap_service_list = self.fields["tap_service"].choices
++        if len(tap_service_list) == 1:
++            self.fields['tap_service'].initial = [tap_service_list[0][0]]
++
++    class Meta(object):
++        name = _("Tap Service")
++        permissions = ('openstack.services.network',)
++        help_text = _("Select tap service for your tap flow.")
++
++    def populate_tap_service_choices(self, request, context):
++        return instance_utils.tap_service_filed_data(request)
++
++
++class SelectTapService(workflows.Step):
++    action_class = SelectTapServiceAction
++    contributes = ("tap_service",)
++
++
++class SelectPortAction(workflows.Action):
++    port = forms.ChoiceField(label=_("Port"),
++                             help_text=_("Create tap flow with"
++                                         " this port"),
++                             widget=forms.SelectWidget(
++                                    transform=lambda x: ("%s (%s) %s" %
++                                              (x.name, x.id, x["fixed_ips"][0]["ip_address"]))))
++
++    def __init__(self, request, *args, **kwargs):
++        super(SelectPortAction, self).__init__(request, *args, **kwargs)
++        port_list = self.fields["port"].choices
++        if len(port_list) == 1:
++            self.fields['port'].initial = [port_list[0][0]]
++
++    class Meta(object):
++        name = _("Port")
++        permissions = ('openstack.services.network',)
++        help_text = _("Select port for your tap flow.")
++
++    def populate_port_choices(self, request, context):
++        instance_id = context['instance_id']
++        return instance_utils.port_field_data(request, instance_id)
++
++
++class SelectPort(workflows.Step):
++    action_class = SelectPortAction
++    depends_on = ("instance_id",)
++    contributes = ("port",)
++
++
++class CreateTapFlow(workflows.Workflow):
++    slug = "create_tapflow"
++    name = _("Create Tap Flow")
++    finalize_button_name = _("Create")
++    success_message = _('Created tap flow "%s".')
++    failure_message = _('Unable to create tap flow "%s".')
++    default_steps = (CreateTapFlowInfo,
++                     SelectTapService,
++                     SelectPort,)
++    wizard = True
++
++    def get_success_url(self):
++        return reverse("horizon:project:network_topology:index")
++
++    def get_failure_url(self):
++        return reverse("horizon:project:network_topology:index")
++
++    def format_status_message(self, message):
++        name = self.context.get('tap_flow_name') or self.context.get('tap_flow_id', '')
++        return message % name
++
++    def _create_tap_flow(self, request, data):
++        try:
++            params = {'name': data['tap_flow_name'],
++                      'description': data['description']}
++            direction = data['direction']
++            tap_service_id = data['tap_service']
++            port_id = data['port']
++            tap_flow = api.network.create_tap_flow(request,
++                                                   direction,
++                                                   tap_service_id,   
++                                                   port_id,
++                                                   **params)
++            self.context['tap_flow_id'] = tap_flow.id
++            return True
++        except Exception:
++            exceptions.handle(request)
++            return False
++
++
++    @sensitive_variables('context')
++    def handle(self, request, context):
++        tap_flow = self._create_tap_flow(request, context)
++        if not tap_flow:
++            return False
++        else:
++            return True
+diff --git a/openstack_dashboard/dashboards/project/network_topology/tapflows/__init__.py b/openstack_dashboard/dashboards/project/network_topology/tapflows/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/openstack_dashboard/dashboards/project/network_topology/tapflows/tables.py b/openstack_dashboard/dashboards/project/network_topology/tapflows/tables.py
+new file mode 100644
+index 0000000..2822b06
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/network_topology/tapflows/tables.py
+@@ -0,0 +1,14 @@
++from django.utils.translation import ugettext_lazy as _
++
++from openstack_dashboard.dashboards.project.tapservices.tapflows import tables
++
++
++class DeleteTapFlow(tables.DeleteTapFlow):
++    failure_url = 'horizon:project:network_topology'
++
++
++class TapFlowsTable(tables.TapFlowsTable):
++    class Meta(object):
++        name = "tapflows"
++        verbose_name = _("Tap Flows")
++        row_actions = (DeleteTapFlow, )
+diff --git a/openstack_dashboard/dashboards/project/network_topology/tapservices/__init__.py b/openstack_dashboard/dashboards/project/network_topology/tapservices/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/openstack_dashboard/dashboards/project/network_topology/tapservices/tables.py b/openstack_dashboard/dashboards/project/network_topology/tapservices/tables.py
+new file mode 100644
+index 0000000..7da26bc
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/network_topology/tapservices/tables.py
+@@ -0,0 +1,13 @@
++from django.utils.translation import ugettext_lazy as _
++
++from openstack_dashboard.dashboards.project.tapservices import tables
++
++
++class DeleteTap(tables.DeleteTap):
++    failure_url = 'horizon:project:network_topology'
++
++class TapsTable(tables.TapsTable):
++    class Meta(object):
++        name = "tap_service"
++        verbose_name = _("Tap Services")
++        row_actions = (DeleteTap, )
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/_svg_element.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/_svg_element.html
+index f1c0210..d4e93f8 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/_svg_element.html
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/_svg_element.html
+@@ -11,12 +11,12 @@ svg#topology_canvas .network-rect.nourl {
+ }
+ svg#topology_canvas .network-name {
+   font-weight: bold;
+-  font-size: 12px;
++  font-size: 24px;
+   fill: #fff;
+   text-anchor: middle;
+ }
+ svg#topology_canvas .network-cidr {
+-  font-size: 11px;
++  font-size: 0px;
+   text-anchor: end;
+ }
+ svg#topology_canvas text.network-type {
+@@ -24,7 +24,7 @@ svg#topology_canvas text.network-type {
+   text-anchor: end;
+ }
+ svg#topology_canvas .port_text {
+-  font-size: 9px;
++  font-size: 0px;
+   fill: #666;
+ }
+ svg#topology_canvas .port_text.left {
+@@ -47,44 +47,82 @@ svg#topology_canvas .icon polygon {
+   fill: #333;
+ }
+ svg#topology_canvas .instance_small .frame,
++svg#topology_canvas .instance_small_taps .frame,
++svg#topology_canvas .instance_small_tapf .frame,
+ svg#topology_canvas .router_small .frame {
+   fill: url(#device_small_bg);
+   stroke: #333;
+   stroke-width: 3;
+ }
+ svg#topology_canvas .instance_small .port_text,
++svg#topology_canvas .instance_small_taps .port_text,
++svg#topology_canvas .instance_small_tapf .port_text,
+ svg#topology_canvas .router_small .port_text {
+   display: none;
+ }
++svg#topology_canvas .instance_small_taps .instance_bg {
++  fill: #0ff;
++}
++svg#topology_canvas .instance_small_tapf .instance_bg {
++  fill: #f55;
++}
+ svg#topology_canvas .router_normal .frame,
+ svg#topology_canvas .instance_normal .frame {
+   fill: #fff;
+   stroke: #333;
+   stroke-width: 4;
+ }
++svg#topology_canvas .instance_normal_taps .frame {
++  fill: #cff;
++  stroke: #333;
++  stroke-width: 4;
++}
++svg#topology_canvas .instance_normal_tapf .frame {
++  fill: #fbd;
++  stroke: #333;
++  stroke-width: 4;
++}
+ svg#topology_canvas .router_normal .icon_bg,
+ svg#topology_canvas .instance_normal .icon_bg {
+   fill: #fff;
+   stroke: #333;
+   stroke-width: 4;
+ }
++svg#topology_canvas .instance_normal_taps .icon_bg {
++  fill: #0ff;
++  stroke: #333;
++  stroke-width: 4;
++}
++svg#topology_canvas .instance_normal_tapf .icon_bg {
++  fill: #f55;
++  stroke: #333;
++  stroke-width: 4;
++}
+ svg#topology_canvas .router_normal .texts_bg,
++svg#topology_canvas .instance_normal_taps .texts_bg,
++svg#topology_canvas .instance_normal_tapf .texts_bg,
+ svg#topology_canvas .instance_normal .texts_bg {
+   fill: url('#device_normal_bg');
+ }
+ svg#topology_canvas .router_normal .texts .name,
++svg#topology_canvas .instance_normal_taps .texts .name,
++svg#topology_canvas .instance_normal_tapf .texts .name,
+ svg#topology_canvas .instance_normal .texts .name {
+   text-anchor: middle;
+   fill: #333;
+-  font-size: 12px;
++  font-size: 20px;
+ }
+ svg#topology_canvas .router_normal .texts .type,
++svg#topology_canvas .instance_normal_taps .texts .type,
++svg#topology_canvas .instance_normal_tapf .texts .type,
+ svg#topology_canvas .instance_normal .texts .type {
+   text-anchor: middle;
+   fill: #fff;
+-  font-size: 12px;
++  font-size: 16px;
+ }
+ svg#topology_canvas .router_normal .instance_bg,
++svg#topology_canvas .instance_normal_taps .instance_bg,
++svg#topology_canvas .instance_normal_tapf .instance_bg,
+ svg#topology_canvas .instance_normal .instance_bg {
+   fill: #333;
+ }
+@@ -98,23 +136,33 @@ svg#topology_canvas g.loading .instance_bg {
+   fill: #555;
+ }
+ svg#topology_canvas g.loading .instance_small .frame,
++svg#topology_canvas g.loading .instance_small_taps .frame,
++svg#topology_canvas g.loading .instance_small_tapf .frame,
+ svg#topology_canvas g.loading .router_small .frame {
+   stroke: #555;
+   fill: url(#device_small_bg_loading);
+ }
+ svg#topology_canvas g.loading .router_normal .frame,
++svg#topology_canvas g.loading .instance_normal_taps .frame,
++svg#topology_canvas g.loading .instance_normal_tapf .frame,
+ svg#topology_canvas g.loading .instance_normal .frame {
+   stroke: #555;
+ }
+ svg#topology_canvas g.loading .router_normal .name,
++svg#topology_canvas g.loading .instance_normal_taps .name,
++svg#topology_canvas g.loading .instance_normal_tapf .name,
+ svg#topology_canvas g.loading .instance_normal .name {
+   fill: #999;
+ }
+ svg#topology_canvas g.loading .router_normal .texts_bg,
++svg#topology_canvas g.loading .instance_normal_taps .texts_bg,
++svg#topology_canvas g.loading .instance_normal_tapf .texts_bg,
+ svg#topology_canvas g.loading .instance_normal .texts_bg {
+   fill: url(#device_normal_bg_loading);
+ }
+ svg#topology_canvas g.loading .router_normal .icon_bg,
++svg#topology_canvas g.loading .instance_normal_taps .icon_bg,
++svg#topology_canvas g.loading .instance_normal_tapf .icon_bg,
+ svg#topology_canvas g.loading .instance_normal .icon_bg {
+   stroke: #555;
+ }
+@@ -169,6 +217,26 @@ svg#topology_canvas g.loading .instance_normal .icon_bg {
+       <circle class="active" cx="3" cy="10" r="1.3"></circle>
+     </g>
+   </g>
++  <g class="instance_small_taps device_body">
++    <g class="ports" pointer-events="none"></g>
++    <rect rx="3" ry="3" width="20" height="20" class="frame"></rect>
++    <g transform="translate(5,3)" class="icon">
++      <rect class="instance_bg" width="10" height="13"></rect>
++      <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
++      <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
++      <circle class="active" cx="3" cy="10" r="1.3"></circle>
++    </g>
++  </g>
++  <g class="instance_small_tapf device_body">
++    <g class="ports" pointer-events="none"></g>
++    <rect rx="3" ry="3" width="20" height="20" class="frame"></rect>
++    <g transform="translate(5,3)" class="icon">
++      <rect class="instance_bg" width="10" height="13"></rect>
++      <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
++      <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
++      <circle class="active" cx="3" cy="10" r="1.3"></circle>
++    </g>
++  </g>
+   <g class="network_container_small">
+     <rect rx="7" ry="7" width="15" height="200" style="fill: #8541B5;" class="network-rect"></rect>
+     <text x="250" y="-3" class="network-name" transform="rotate(90 0 0)" pointer-events="none">Network</text>
+@@ -212,6 +280,42 @@ svg#topology_canvas g.loading .instance_normal .icon_bg {
+       </g>
+     </g>
+   </g>
++  <g class="instance_normal_taps device_body">
++    <g class="ports" pointer-events="none"></g>
++    <rect class="frame" x="0" y="0" rx="6" ry="6" width="90" height="50"></rect>
++    <g class="texts">
++      <rect class="texts_bg" x="1.5" y="32" width="87" height="17"></rect>
++      <text x="45" y="46" class="type">{% trans "Instance" %}</text>
++      <text x="45" y="22" class="name">instance</text>
++    </g>
++    <g class="icon" transform="translate(6,6)">
++      <circle class="icon_bg" cx="0" cy="0" r="12"></circle>
++      <g transform="translate(-5,-6.5)">
++        <rect class="instance_bg" width="10" height="13"></rect>
++        <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
++        <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
++        <circle class="active" cx="3" cy="10" r="1.3"></circle>
++      </g>
++    </g>
++  </g>
++  <g class="instance_normal_tapf device_body">
++    <g class="ports" pointer-events="none"></g>
++    <rect class="frame" x="0" y="0" rx="6" ry="6" width="90" height="50"></rect>
++    <g class="texts">
++      <rect class="texts_bg" x="1.5" y="32" width="87" height="17"></rect>
++      <text x="45" y="46" class="type">{% trans "Instance" %}</text>
++      <text x="45" y="22" class="name">instance</text>
++    </g>
++    <g class="icon" transform="translate(6,6)">
++      <circle class="icon_bg" cx="0" cy="0" r="12"></circle>
++      <g transform="translate(-5,-6.5)">
++        <rect class="instance_bg" width="10" height="13"></rect>
++        <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
++        <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
++        <circle class="active" cx="3" cy="10" r="1.3"></circle>
++      </g>
++    </g>
++  </g>
+   <g class="network_container_normal">
+     <rect rx="9" ry="9" width="17" height="500" style="fill: #8541B5;" class="network-rect"></rect>
+     <text x="250" y="-4" class="network-name" transform="rotate(90 0 0)" pointer-events="none">Network</text>
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_container.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_container.html
+index 7bf938b..0b64ebd 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_container.html
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_container.html
+@@ -10,6 +10,8 @@
+   <div class="contentBody">
+     [[> table1]]
+     [[> table2]]
++    [[> table3]]
++    [[> table4]]
+   </div>
+   <div class="footer">
+     <div class="footerInner">
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapflow.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapflow.html
+new file mode 100644
+index 0000000..831c045
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapflow.html
+@@ -0,0 +1,35 @@
++{% extends "horizon/client_side/template.html" %}
++{% load horizon %}
++
++{% block id %}balloon_tapflow{% endblock %}
++
++{% block template %}
++{% jstemplate %}
++<div class="portTableHeader">
++  <div class="title">[[tapflow_label]]</div>
++  <div class="action">
++    <a class="add-interface btn btn-default btn-xs ajax-modal [[type]]" href="[[create_tapflow_url]]">
++      <span class="fa fa-plus"></span>
++      [[create_tapflow_label]]
++    </a>
++  </div>
++</div>
++<table class="detailInfoTable">
++  <caption></caption>
++  <tbody>
++    [[#tapflow]]
++    <tr>
++      <th>
++        <span title="[[name]]">
++          <a href="[[url]]">[[name]]</a>
++        </span>
++      </th>
++      <td class="delete">
++        <button class="delete-tapflow btn btn-danger btn-xs" data-tapservice-id="[[tap_service_id]]" data-tapflow-id="[[id]]">[[delete_tapflow_label]]</button>
++      </td>
++    </tr>
++    [[/tapflow]]
++  </tbody>
++</table>
++{% endjstemplate %}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapservice.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapservice.html
+new file mode 100644
+index 0000000..68d9ae9
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/client_side/_balloon_tapservice.html
+@@ -0,0 +1,29 @@
++{% extends "horizon/client_side/template.html" %}
++{% load horizon %}
++
++{% block id %}balloon_tapservice{% endblock %}
++
++{% block template %}
++{% jstemplate %}
++<div class="portTableHeader">
++  <div class="title">[[tapservice_label]]</div>
++</div>
++<table class="detailInfoTable">
++  <caption></caption>
++  <tbody>
++    [[#tapservice]]
++    <tr>
++      <th>
++        <span title="[[name]]">
++          <a href="[[url]]">[[name]]</a>
++        </span>
++      </th>
++      <td class="delete">
++        <button class="delete-tapservice btn btn-danger btn-xs" data-tapservice-id="[[id]]">[[delete_tapservice_label]]</button>
++      </td>
++    </tr>
++    [[/tapservice]]
++  </tbody>
++</table>
++{% endjstemplate %}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/iframe.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/iframe.html
+index 907e722..2a417a6 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/iframe.html
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/iframe.html
+@@ -8,7 +8,7 @@
+   </head>
+   <body>
+     {% include "horizon/_messages.html" %}
+-    {% firstof  table.render  interfaces_table.render tab_group.render %}
++    {% firstof  table.render  interfaces_table.render tab_group.render  tapflows_table.render %}
+     {% include "project/network_topology/_post_massage.html" %}
+   </body>
+ </html>
+diff --git a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/index.html b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/index.html
+index 1762914..c33dd93 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/index.html
++++ b/openstack_dashboard/dashboards/project/network_topology/templates/network_topology/index.html
+@@ -12,6 +12,8 @@
+ {% include "project/network_topology/client_side/_balloon_container.html" %}
+ {% include "project/network_topology/client_side/_balloon_device.html" %}
+ {% include "project/network_topology/client_side/_balloon_port.html" %}
++{% include "project/network_topology/client_side/_balloon_tapservice.html" %}
++{% include "project/network_topology/client_side/_balloon_tapflow.html" %}
+ 
+ <div class="topologyNavi">
+   <div class="toggleView btn-group" data-toggle="buttons">
+@@ -42,6 +44,9 @@
+   {% if create_router_allowed %}
+       <a href="{% url 'horizon:project:network_topology:createrouter' %}" id="Routers__action_create" class="btn btn-default btn-sm ajax-modal {% if router_quota_exceeded %}disabled{% endif %}"><span class="fa fa-plus"></span> {% if router_quota_exceeded %}{% trans "Create Router (Quota exceeded)"%}{% else %}{% trans "Create Router"%}{% endif %}</a>
+   {% endif %}
++  {% if create_tapservice_allowed %}
++      <a href="{% url 'horizon:project:network_topology:createtapservice' %}" id="Tapservices__action_create" class="btn btn-default btn-sm ajax-modal"><span class="fa fa-plus"></span> {% trans "Create Tap Service"%}</a>
++  {% endif %}
+   </div>
+ </div>
+ 
+diff --git a/openstack_dashboard/dashboards/project/network_topology/urls.py b/openstack_dashboard/dashboards/project/network_topology/urls.py
+index 55909a2..44f6cc5 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/urls.py
++++ b/openstack_dashboard/dashboards/project/network_topology/urls.py
+@@ -37,4 +37,10 @@ urlpatterns = patterns(
+         name='createnetwork'),
+     url(r'^createrouter$', views.NTCreateRouterView.as_view(),
+         name='createrouter'),
++    url(r'^createtapservice$', views.NTCreateTapServiceView.as_view(),
++        name='createtapservice'),
++    url(r'^deletetapservice$', views.TapServiceView.as_view(),
++        name='deletetapservice'),
++    url(r'^tapservice/(?P<tap_service_id>[^/]+)/$', views.TapFlowView.as_view(),
++        name='tapservicedetail'),
+ )
+diff --git a/openstack_dashboard/dashboards/project/network_topology/views.py b/openstack_dashboard/dashboards/project/network_topology/views.py
+index d8d2941..cf2eaea 100644
+--- a/openstack_dashboard/dashboards/project/network_topology/views.py
++++ b/openstack_dashboard/dashboards/project/network_topology/views.py
+@@ -37,6 +37,10 @@ from openstack_dashboard.dashboards.project.network_topology.ports \
+     import tables as ports_tables
+ from openstack_dashboard.dashboards.project.network_topology.routers \
+     import tables as routers_tables
++from openstack_dashboard.dashboards.project.network_topology.tapservices \
++    import tables as taps_tables
++from openstack_dashboard.dashboards.project.network_topology.tapflows \
++    import tables as tapf_tables
+ 
+ from openstack_dashboard.dashboards.project.instances import\
+     console as i_console
+@@ -50,6 +54,22 @@ from openstack_dashboard.dashboards.project.networks import\
+     workflows as n_workflows
+ from openstack_dashboard.dashboards.project.routers import\
+     views as r_views
++from openstack_dashboard.dashboards.project.tapservices import\
++    views as taps_views
++from openstack_dashboard.dashboards.project.tapservices import\
++    workflows as taps_workflows
++
++
++class NTCreateTapService(taps_workflows.CreateTap):
++    def get_success_url(self):
++        return reverse("horizon:project:network_topology:index")
++
++    def get_failure_url(self):
++        return reverse("horizon:project:network_topology:index")
++
++
++class NTCreateTapServiceView(taps_views.CreateView):
++    workflow_class = NTCreateTapService
+ 
+ 
+ class NTCreateRouterView(r_views.CreateView):
+@@ -96,6 +116,19 @@ class RouterDetailView(r_views.DetailView):
+         pass
+ 
+ 
++class TapServiceView(taps_views.IndexView):
++    table_classes = (taps_tables.TapsTable, )
++    template_name = 'project/network_topology/iframe.html'
++
++    def get_tap_service_data(self):
++        pass
++
++
++class TapFlowView(taps_views.DetailView):
++    table_classes = (tapf_tables.TapFlowsTable, )
++    template_name = 'project/network_topology/iframe.html'
++
++
+ class NetworkTopologyView(views.HorizonTemplateView):
+     template_name = 'project/network_topology/index.html'
+     page_title = _("Network Topology")
+@@ -127,6 +160,9 @@ class NetworkTopologyView(views.HorizonTemplateView):
+         context['create_router_allowed'] = (
+             network_config.get('enable_router', True) and
+             self._has_permission((("network", "create_router"),)))
++        context['create_tapservice_allowed'] = (
++            api.network.taas_supported(self.request) and
++            self._has_permission((("network", "create_tap_service"),)))
+         context['router_quota_exceeded'] = self._quota_exceeded('routers')
+         context['console_type'] = getattr(
+             settings, 'CONSOLE_TYPE', 'AUTO')
+@@ -168,6 +204,11 @@ class JSONView(View):
+         data = []
+         console_type = getattr(settings, 'CONSOLE_TYPE', 'AUTO')
+         # lowercase of the keys will be used at the end of the console URL.
++        try:
++            neutron_ports = api.neutron.port_list(request)
++        except Exception:
++            neutron_ports = []
++        self.taps = api.neutron.TapManager(request)
+         for server in servers:
+             try:
+                 console = i_console.get_console(
+@@ -175,16 +216,62 @@ class JSONView(View):
+             except exceptions.NotAvailable:
+                 console = None
+ 
++            port_ids = []
++            for port in neutron_ports:
++                if port.device_id == server.id:
++                    port_ids.append(port.id)
++            taps = 'false'
++            tapf = 'false'
++            if len(port_ids) > 0:
++                for port_id in port_ids:
++                    if self.taps.port_has_taps(port_id):
++                        taps = 'true'
++                    elif self.taps.port_has_tapf(port_id):
++                        tapf = 'true'
++
+             server_data = {'name': server.name,
+                            'status': server.status,
+                            'task': getattr(server, 'OS-EXT-STS:task_state'),
+-                           'id': server.id}
++                           'id': server.id,
++                           'taps': taps,
++                           'tapf': tapf}
+             if console:
+                 server_data['console'] = console
+             data.append(server_data)
+         self.add_resource_url('horizon:project:instances:detail', data)
+         return data
+ 
++
++    def _get_tapservices(self, request):
++        try:
++            neutron_tapservices = api.network.list_tap_service(request)
++        except Exception:
++            neutron_tapservices = []
++
++        tapservices = [{'id': tapservice.id,
++                        'name': tapservice.name_or_id,
++                        'port_id': tapservice.port_id,}
++                       for tapservice in neutron_tapservices]
++        self.add_resource_url('horizon:project:tapservices:detail', tapservices)
++        return tapservices
++
++
++    def _get_tapflows(self, request):
++        try:
++            tap_service_id = []
++            neutron_tapflows = api.network.list_tap_flow(request, tap_service_id)
++        except Exception:
++            neutron_tapflows = []
++
++        tapflows = [{'id': tapflow.id,
++                     'name': tapflow.name_or_id,
++                     'port_id': tapflow.source_port,
++                     'tap_service_id': tapflow.tap_service_id,}
++                    for tapflow in neutron_tapflows]
++        self.add_resource_url('horizon:project:tapservices:tapflows:detail', tapflows)
++        return tapflows
++
++
+     def _get_networks(self, request):
+         # Get neutron data
+         # if we didn't specify tenant_id, all networks shown as admin user.
+@@ -229,9 +316,13 @@ class JSONView(View):
+                     'subnets': subnets,
+                     'router:external': publicnet['router:external']})
+ 
+-        return sorted(networks,
+-                      key=lambda x: x.get('router:external'),
+-                      reverse=True)
++        def net_cmp(x, y):
++            ext = cmp(x.get('router:external'), y.get('router:external'))
++            if ext == 0:
++                return cmp(y['name'], x['name'])
++            else:
++                return ext
++        return sorted(networks, cmp=net_cmp, reverse=True)
+ 
+     def _get_routers(self, request):
+         if not self.is_router_enabled:
+@@ -292,6 +383,8 @@ class JSONView(View):
+ 
+     def get(self, request, *args, **kwargs):
+         data = {'servers': self._get_servers(request),
++                'tapservices': self._get_tapservices(request),
++                'tapflows': self._get_tapflows(request),
+                 'networks': self._get_networks(request),
+                 'ports': self._get_ports(request),
+                 'routers': self._get_routers(request)}
+diff --git a/openstack_dashboard/dashboards/project/tapservices/__init__.py b/openstack_dashboard/dashboards/project/tapservices/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/openstack_dashboard/dashboards/project/tapservices/panel.py b/openstack_dashboard/dashboards/project/tapservices/panel.py
+new file mode 100644
+index 0000000..34d4688
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/panel.py
+@@ -0,0 +1,31 @@
++import logging
++
++from django.utils.translation import ugettext_lazy as _
++
++import horizon
++
++from openstack_dashboard import api
++
++LOG = logging.getLogger(__name__)
++
++
++class TapServices(horizon.Panel):
++    name = _("Tap Services")
++    slug = 'tapservices'
++    permissions = ('openstack.services.network',)
++
++    def allowed(self, context):
++        request = context['request']
++        if not request.user.has_perms(self.permissions):
++            return False
++        try:
++            if not api.network.taas_supported(request):
++                return False
++        except Exception:
++            LOG.error("Call to list enabled services failed. This is likely "
++                      "due to a problem communicating with the Neutron "
++                      "endpoint. Tap Services panel will not be displayed.")
++            return False
++        if not super(TapServices, self).allowed(context):
++            return False
++        return True
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tables.py b/openstack_dashboard/dashboards/project/tapservices/tables.py
+new file mode 100644
+index 0000000..821a0c7
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tables.py
+@@ -0,0 +1,97 @@
++import logging
++
++from django.core.urlresolvers import reverse
++from django import template
++from django.utils.translation import pgettext_lazy
++from django.utils.translation import ugettext_lazy as _
++from django.utils.translation import ungettext_lazy
++
++from horizon import exceptions
++from horizon import tables
++
++from openstack_dashboard import api
++from openstack_dashboard import policy
++
++
++LOG = logging.getLogger(__name__)
++
++
++class TapFilterAction(tables.FilterAction):
++
++    def filter(self, table, tap_services, filter_string):
++        """Naive case-insensitive search."""
++        query = filter_string.lower()
++        return [tap_service for tap_service in tap_services
++                if query in tap_service.id.lower()]
++
++
++class CreateTap(tables.LinkAction):
++    name = "create"
++    verbose_name = _("Create Tap Service")
++    url = "horizon:project:tapservices:create"
++    classes = ("ajax-modal",)
++    icon = "plus"
++    policy_rules = (("network", "create_tap_service"),)
++
++    def allowed(self, request, datum=None):
++        return True    
++
++
++class DeleteTap(tables.DeleteAction):
++    @staticmethod
++    def action_present(count):
++        return ungettext_lazy(
++            u"Delete Tap Service",
++            u"Delete Tap Services",
++            count
++        )
++
++    @staticmethod
++    def action_past(count):
++        return ungettext_lazy(
++            u"Deleted Tap Service",
++            u"Deleted Tap Services",
++            count
++        )
++
++    policy_rules = (("network", "delete_tap_service"),)
++
++    def delete(self, request, tap_service_id):
++        tap_service_name = tap_service_id
++        try:
++            api.network.delete_tap_service(request, tap_service_id)
++            LOG.debug('Deleted tap service %s successfully', tap_service_id)
++        except Exception:
++            msg = _('Failed to delete tap service %s')
++            LOG.info(msg, tap_service_id)
++            redirect = reverse("horizon:project:tapservices:index")
++            exceptions.handle(request, msg % tap_service_name, redirect=redirect)
++
++
++class CreateTapFlow(tables.LinkAction):
++    name = "tapflow"
++    verbose_name = _("Create Tap Flow")
++    url = "horizon:project:tapservices:createtapflow"
++    classes = ("ajax-modal",)
++    icon = "plus"
++    policy_rules = (("network", "create_tap_flow"),)
++
++    def allowed(self, request, datum=None):
++        return True
++
++
++class TapsTable(tables.DataTable):
++    name = tables.Column("name_or_id",
++                         verbose_name=_("Name"),
++                         link="horizon:project:tapservices:detail")
++    port_id = tables.Column("port_id",
++                            verbose_name=_("Port ID"),)
++
++    def get_object_display(self, obj):
++        return obj.id
++
++    class Meta(object):
++        name = "tap_service"
++        verbose_name = _("Tap Services")
++        table_actions = (CreateTap, DeleteTap, TapFilterAction)
++        row_actions = (CreateTapFlow, DeleteTap,)
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/__init__.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/tables.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/tables.py
+new file mode 100644
+index 0000000..47eadce
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/tables.py
+@@ -0,0 +1,83 @@
++import logging
++
++from django.core.urlresolvers import reverse
++from django import template
++from django.utils.translation import pgettext_lazy
++from django.utils.translation import ugettext_lazy as _
++from django.utils.translation import ungettext_lazy
++
++from horizon import tables
++
++from openstack_dashboard import api
++from openstack_dashboard import policy
++
++
++LOG = logging.getLogger(__name__)
++
++
++class CreateTapFlow(tables.LinkAction):
++    name = "create"
++    verbose_name = _("Create Tap Flow")
++    url = "horizon:project:tapservices:createtapflow"
++    classes = ("ajax-modal",)
++    icon = "plus"
++    policy_rules = (("network", "create_tap_flow"),)
++
++    def get_link_url(self, datum=None):
++        tap_service_id = self.table.kwargs['tap_service_id']
++        return reverse(self.url, args=(tap_service_id,))
++
++    def allowed(self, request, datum=None):
++        return True
++
++
++class DeleteTapFlow(tables.DeleteAction):
++    @staticmethod
++    def action_present(count):
++        return ungettext_lazy(
++            u"Delete Tap Flow",
++            u"Delete Tap Flows",
++            count
++        )
++
++    @staticmethod
++    def action_past(count):
++        return ungettext_lazy(
++            u"Deleted Tap Flow",
++            u"Deleted Tap Flows",
++            count
++        )
++
++    policy_rules = (("network", "delete_tap_flow"),)
++
++    def delete(self, request, tap_flow_id):
++        tap_flow_name = tap_flow_id
++        try:
++            api.network.delete_tap_flow(request, tap_flow_id)
++            LOG.debug('Deleted tap flow %s successfully', tap_flow_id)
++        except Exception:
++            msg = _('Failed to delete tap flow %s')
++            LOG.info(msg, tap_flow_id)
++            redirect = reverse("horizon:project:tapservices:detail",
++                               args=[tap_service_id])
++            exceptions.handle(request, msg % tap_flow_name, redirect=redirect)
++
++
++class TapFlowsTable(tables.DataTable):
++    name = tables.Column("name_or_id",
++                         verbose_name=_("Name"),
++                         link="horizon:project:tapservices:tapflows:detail")
++    port_id = tables.Column("source_port",
++                            verbose_name=_("Port ID"))
++    tap_service_id = tables.Column("tap_service_id",
++                                   verbose_name=_("Tap Service ID"))
++
++    def get_object_display(self, obj):
++        return obj.id
++
++    class Meta(object):
++        name = "tapflows"
++        verbose_name = _("Tap Flows")
++        table_actions = (CreateTapFlow, DeleteTapFlow,)
++        row_actions = (DeleteTapFlow,)
++        hidden_title = False
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/tabs.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/tabs.py
+new file mode 100644
+index 0000000..1fb2d20
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/tabs.py
+@@ -0,0 +1,18 @@
++from django.utils.translation import ugettext_lazy as _
++
++from horizon import tabs
++
++
++class OverviewTab(tabs.Tab):
++    name = _("Overview")
++    slug = "overview"
++    template_name = "project/tapservices/tapflows/_detail_overview.html"
++
++    def get_context_data(self, request):
++        tap_flow = self.tab_group.kwargs['tap_flow']
++        return {'tap_flow': tap_flow}
++
++
++class TapFlowDetailTabs(tabs.TabGroup):
++    slug = "tapflow_details"
++    tabs = (OverviewTab,)
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/urls.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/urls.py
+new file mode 100644
+index 0000000..4c144a0
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/urls.py
+@@ -0,0 +1,14 @@
++from django.conf.urls import patterns
++from django.conf.urls import url
++
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import views
++
++
++TAP_FLOWS = r'^(?P<tap_flow_id>[^/]+)/%s$'
++VIEW_MOD = 'openstack_dashboard.dashboards.project.tapservices.tapflows.views'
++
++urlpatterns = patterns(
++    VIEW_MOD,
++    url(TAP_FLOWS % 'detail', views.DetailView.as_view(), name='detail'),
++)
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/utils.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/utils.py
+new file mode 100644
+index 0000000..3eac1a1
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/utils.py
+@@ -0,0 +1,42 @@
++import logging
++
++from django.conf import settings
++from django.utils.translation import ugettext_lazy as _
++import six
++
++from horizon import exceptions
++
++from openstack_dashboard import api
++
++LOG = logging.getLogger(__name__)
++
++
++def port_field_data(request, include_empty_option=False):
++    """Returns a list of tuples of all ports.
++
++    Generates a list of ports available to the user (request). And returns
++    a list of (id, name) tuples.
++
++    :param request: django http request object
++    :param include_empty_option: flag to include a empty tuple in the front of
++    the list
++    :return: list of (id, name) tuples
++    """
++    ports = []
++    try:
++        ports = api.neutron.port_list(request,)
++        ports = [(n.id, n) for n in ports]
++        ports.sort(key=lambda obj: obj[1])
++    except Exception as e:
++        msg = _('Failed to get port list {0}').format(six.text_type(e))
++        exceptions.handle(request, msg)
++
++    if not ports:
++        if include_empty_option:
++            return [("", _("No ports available")), ]
++        return []
++
++    if include_empty_option:
++        return [("", _("Select Port")), ] + ports
++    return ports
++
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/views.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/views.py
+new file mode 100644
+index 0000000..62f0650
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/views.py
+@@ -0,0 +1,77 @@
++from django.core.urlresolvers import reverse
++from django.core.urlresolvers import reverse_lazy
++from django.utils.datastructures import SortedDict
++from django.utils.translation import pgettext_lazy
++from django.utils.translation import ugettext_lazy as _
++
++from horizon import exceptions
++from horizon import forms
++from horizon import messages
++from horizon import tables
++from horizon import tabs
++from horizon.utils import memoized
++from horizon import workflows
++from openstack_dashboard import api
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import tabs as tapf_tabs
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import workflows as tapf_workflows
++
++
++class CreateView(workflows.WorkflowView):
++    workflow_class = tapf_workflows.CreateTapFlow
++    ajax_template_name = 'project/tapservices/tapflows/create.html'
++
++    @memoized.memoized_method
++    def get_object(self):
++        try:
++            tap_service_id = self.kwargs["tap_service_id"]
++            tap_service = api.network.show_tap_service(self.request, tap_service_id)
++            return tap_service
++        except Exception:
++            redirect = reverse('horizon:project:tapservices:index')
++            msg = _('Unable to retrieve details for tap service "%s".') \
++                % (tap_service_id)
++            exceptions.handle(self.request, msg, redirect=redirect)
++
++    def get_initial(self):
++        tap_service = self.get_object()
++        return {"tap_service_id": self.kwargs['tap_service_id'],
++                "tap_service_name": tap_service.name_or_id}
++
++
++class DetailView(tabs.TabView):
++    tab_group_class = tapf_tabs.TapFlowDetailTabs
++    template_name = 'project/tapservices/tapflows/detail.html'
++    page_title = _("Tap Flow Details: {{ tap_flow.name }}")
++
++    @memoized.memoized_method
++    def get_data(self):
++        tap_flow_id = self.kwargs['tap_flow_id']
++
++        try:
++            tap_flow = api.network.show_tap_flow(self.request, tap_flow_id)
++        except Exception:
++            tap_flow = []
++            redirect = self.get_redirect_url()
++            msg = _('Unable to retrieve details for tap flow \"%s\".') \
++                % (tap_flow_id)
++            exceptions.handle(self.request, msg, redirect=redirect)
++
++        return tap_flow
++
++    def get_context_data(self, **kwargs):
++        context = super(DetailView, self).get_context_data(**kwargs)
++        tap_flow = self.get_data()
++        context["tap_flow"] = tap_flow
++        context["url"] = self.get_redirect_url()
++        return context
++
++    def get_tabs(self, request, *args, **kwargs):
++        tap_flow = self.get_data()
++        return self.tab_group_class(request, tap_flow=tap_flow, **kwargs)
++
++    @staticmethod
++    def get_redirect_url():
++        return reverse('horizon:project:tapservices:index')
++
+diff --git a/openstack_dashboard/dashboards/project/tapservices/tapflows/workflows.py b/openstack_dashboard/dashboards/project/tapservices/tapflows/workflows.py
+new file mode 100644
+index 0000000..39830d1
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/tapflows/workflows.py
+@@ -0,0 +1,117 @@
++from django.core.urlresolvers import reverse
++from django.utils.translation import ugettext_lazy as _
++from django.views.decorators.debug import sensitive_variables
++
++from horizon import exceptions
++from horizon import forms
++from horizon import workflows
++
++from openstack_dashboard import api
++from openstack_dashboard.utils import filters
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import utils as tapf_utils
++from openstack_dashboard.dashboards.project.tapservices \
++    import workflows as taps_workflows
++
++
++class CreateTapFlowInfoAction(workflows.Action):
++    tap_flow_name = forms.CharField(max_length=255,
++                               label=_("Tap Flow Name"),
++                               required=False)
++    description = forms.CharField(max_length=255, label=_("Description"),
++                                  required=False)
++    direction = forms.ChoiceField(choices=[('BOTH', _('Both')),
++                                           ('IN', _('Ingress')),
++                                           ('OUT', _('Egress'))],
++                                  label=_("Direction"),
++                                  help_text=_("Whether to mirror the traffic"
++                                              " leaving or ariving at the source port."))
++
++    class Meta(object):
++        name = _("Information")
++        slug = 'instance_info'
++        help_text = _("Create a new tap flow.")
++
++
++class CreateTapFlowInfo(workflows.Step):
++    action_class = CreateTapFlowInfoAction
++    contributes = ("tap_flow_name", "description", "direction")
++    depends_on = ("tap_service_id",)
++
++
++class SelectPortAction(workflows.Action):
++    port = forms.ChoiceField(label=_("Port"),
++                             help_text=_("Create tap flow with"
++                                         " this port"),
++                             widget=forms.SelectWidget(
++                                    transform=lambda x: ("%s (%s) %s" %
++                                              (x.name, x.id, x["fixed_ips"][0]["ip_address"]))))
++
++    def __init__(self, request, *args, **kwargs):
++        super(SelectPortAction, self).__init__(request, *args, **kwargs)
++        port_list = self.fields["port"].choices
++        if len(port_list) == 1:
++            self.fields['port'].initial = [port_list[0][0]]
++
++    class Meta(object):
++        name = _("Port")
++        permissions = ('openstack.services.network',)
++        help_text = _("Select port for your tap flow.")
++
++    def populate_port_choices(self, request, context):
++        return tapf_utils.port_field_data(request,)
++
++
++class SelectPort(workflows.Step):
++    action_class = SelectPortAction
++    contributes = ("port",)
++
++
++class CreateTapFlow(taps_workflows.CreateTap):
++    slug = "create_tapflow"
++    name = _("Create Tap Flow")
++    finalize_button_name = _("Create")
++    success_message = _('Created tap flow "%s".')
++    failure_message = _('Unable to create tap flow "%s".')
++    default_steps = (CreateTapFlowInfo,
++                     SelectPort,)
++    wizard = True
++
++    def get_success_url(self):
++        return reverse("horizon:project:tapservices:detail",
++                       args=(self.context.get('tap_service_id'),))
++
++    def get_failure_url(self):
++        return reverse("horizon:project:tapservices:detail",
++                       args=(self.context.get('tap_service_id'),))
++
++    def format_status_message(self, message):
++        name = self.context.get('tap_flow_name') or self.context.get('tap_flow_id', '')
++        return message % name
++
++    def _create_tap_flow(self, request, data):
++        try:
++            params = {'name': data['tap_flow_name'],
++                      'description': data['description']}
++            direction = data['direction']
++            tap_service_id = self.context.get('tap_service_id')
++            port_id = data['port']
++            tap_flow = api.network.create_tap_flow(request,
++                                                   direction,
++                                                   tap_service_id,   
++                                                   port_id,
++                                                   **params)
++            self.context['tap_flow_id'] = tap_flow.id
++            return True
++        except Exception:
++            exceptions.handle(request)
++            return False
++
++
++    @sensitive_variables('context')
++    def handle(self, request, context):
++        tap_flow = self._create_tap_flow(request, context)
++        if not tap_flow:
++            return False
++        else:
++            return True
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/_detail_overview.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/_detail_overview.html
+new file mode 100644
+index 0000000..94f878d
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/_detail_overview.html
+@@ -0,0 +1,17 @@
++{% load i18n sizeformat %}
++
++<h3>{% trans "Tap Service Overview" %}</h3>
++
++<div class="info detail">
++  <dl class="dl-horizontal">
++    <dt>{% trans "Name" %}</dt>
++    <dd>{{ tap_service.name|default:_("None") }}</dd>
++    <dt>{% trans "ID" %}</dt>
++    <dd>{{ tap_service.id|default:_("None") }}</dd>
++    <dt>{% trans "Project ID" %}</dt>
++    <dd>{{ tap_service.tenant_id|default:_("-") }}</dd>
++    {% url 'horizon:project:networks:ports:detail' tap_service.port_id as port_url %}
++    <dt>{% trans "Port ID" %}</dt>
++    <dd><a href="{{ port_url }}">{{ tap_service.port_id|default:_("None") }}</a></dd>
++  </dl>
++</div>
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/create.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/create.html
+new file mode 100644
+index 0000000..7a0c112
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/create.html
+@@ -0,0 +1,17 @@
++{% extends 'horizon/common/_workflow.html' %}
++{% load i18n %}
++{% load url from future %}
++
++{% block modal-footer %}
++  {% if workflow.wizard %}
++  <div class="row footer-row">
++    <a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>
++    <button type="button" class="btn btn-default button-previous">{% trans "&laquo;&nbsp;Back" %}</button>
++    <button type="button" class="btn btn-primary button-next">{% trans "Next&nbsp;&raquo;" %}</button>
++    <button type="submit" class="btn btn-primary button-final">{{ workflow.finalize_button_name }}</button>
++  </div>
++  {% else %}
++    <input class="btn btn-primary pull-right" type="submit" value="{{ workflow.finalize_button_name }}" />
++    {% if modal %}<a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>{% endif %}
++  {% endif %}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/detail.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/detail.html
+new file mode 100644
+index 0000000..c866092
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/detail.html
+@@ -0,0 +1,16 @@
++{% extends 'base.html' %}
++{% load i18n %}
++{% block title %}{% trans "Tap Service Details"%}{% endblock %}
++
++{% block main %}
++<div class="row">
++  <div class="col-sm-12">
++    {% include "project/tapservices/_detail_overview.html" %}
++    <hr>
++    <div id="tapflows">
++      {{ tapflows_table.render }}
++    </div>
++  </div>
++</div>
++{% endblock %}
++
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/index.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/index.html
+new file mode 100644
+index 0000000..e427744
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/index.html
+@@ -0,0 +1,7 @@
++{% extends 'base.html' %}
++{% load i18n %}
++{% block title %}{% trans "Tap Services" %}{% endblock %}
++
++{% block main %}
++  {{ table.render }}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/_detail_overview.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/_detail_overview.html
+new file mode 100644
+index 0000000..8630fb3
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/_detail_overview.html
+@@ -0,0 +1,19 @@
++{% load i18n sizeformat %}
++{% load url from future %}
++
++<div class="detail">
++  <dl class="dl-horizontal">
++    <dt>{% trans "Name" %}</dt>
++    <dd>{{ tap_flow.name|default:_("None") }}</dd>
++    <dt>{% trans "ID" %}</dt>
++    <dd>{{ tap_flow.id|default:_("None") }}</dd>
++    <dt>{% trans "Direction" %}</dt>
++    <dd>{{ tap_flow.direction|default:_("Both") }}</dd>
++    <dt>{% trans "Tap Service ID" %}</dt>
++    <dd>{{ tap_flow.tap_service_id|default:_("-") }}</dd>
++    <dt>{% trans "Port ID" %}</dt>
++    <dd>{{ tap_flow.source_port|default:_("-") }}</dd>
++    <dt>{% trans "Project ID" %}</dt>
++    <dd>{{ tap_flow.tenant_id|default:_("-") }}</dd>
++  </dl>
++</div>
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/create.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/create.html
+new file mode 100644
+index 0000000..7a0c112
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/create.html
+@@ -0,0 +1,17 @@
++{% extends 'horizon/common/_workflow.html' %}
++{% load i18n %}
++{% load url from future %}
++
++{% block modal-footer %}
++  {% if workflow.wizard %}
++  <div class="row footer-row">
++    <a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>
++    <button type="button" class="btn btn-default button-previous">{% trans "&laquo;&nbsp;Back" %}</button>
++    <button type="button" class="btn btn-primary button-next">{% trans "Next&nbsp;&raquo;" %}</button>
++    <button type="submit" class="btn btn-primary button-final">{{ workflow.finalize_button_name }}</button>
++  </div>
++  {% else %}
++    <input class="btn btn-primary pull-right" type="submit" value="{{ workflow.finalize_button_name }}" />
++    {% if modal %}<a class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>{% endif %}
++  {% endif %}
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/detail.html b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/detail.html
+new file mode 100644
+index 0000000..2ea4935
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/templates/tapservices/tapflows/detail.html
+@@ -0,0 +1,11 @@
++{% extends 'base.html' %}
++{% load i18n %}
++{% block title %}{% trans "Tap Flow Details"%}{% endblock %}
++
++{% block main %}
++<div id="row">
++  <div class="col-sm-12">
++    {{ tab_group.render }}
++  </div>
++</div>
++{% endblock %}
+diff --git a/openstack_dashboard/dashboards/project/tapservices/urls.py b/openstack_dashboard/dashboards/project/tapservices/urls.py
+new file mode 100644
+index 0000000..3b247ed
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/urls.py
+@@ -0,0 +1,24 @@
++from django.conf.urls import include
++from django.conf.urls import patterns
++from django.conf.urls import url
++
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import urls as tapflow_urls
++from openstack_dashboard.dashboards.project.tapservices import views
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import views as tapf_views
++
++
++TAP_SERVICES = r'^(?P<tap_service_id>[^/]+)/%s$'
++
++urlpatterns = patterns(
++    '',
++    url(r'^$', views.IndexView.as_view(), name='index'),
++    url(r'^create/$', views.CreateView.as_view(), name='create'),
++    url(TAP_SERVICES % 'detail', views.DetailView.as_view(), name='detail'),
++    url(TAP_SERVICES % 'tapflows/create', tapf_views.CreateView.as_view(),
++        name='createtapflow'),
++    url(r'^tapflows/', include(tapflow_urls, namespace='tapflows')),
++)
++
++
+diff --git a/openstack_dashboard/dashboards/project/tapservices/utils.py b/openstack_dashboard/dashboards/project/tapservices/utils.py
+new file mode 100644
+index 0000000..3eac1a1
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/utils.py
+@@ -0,0 +1,42 @@
++import logging
++
++from django.conf import settings
++from django.utils.translation import ugettext_lazy as _
++import six
++
++from horizon import exceptions
++
++from openstack_dashboard import api
++
++LOG = logging.getLogger(__name__)
++
++
++def port_field_data(request, include_empty_option=False):
++    """Returns a list of tuples of all ports.
++
++    Generates a list of ports available to the user (request). And returns
++    a list of (id, name) tuples.
++
++    :param request: django http request object
++    :param include_empty_option: flag to include a empty tuple in the front of
++    the list
++    :return: list of (id, name) tuples
++    """
++    ports = []
++    try:
++        ports = api.neutron.port_list(request,)
++        ports = [(n.id, n) for n in ports]
++        ports.sort(key=lambda obj: obj[1])
++    except Exception as e:
++        msg = _('Failed to get port list {0}').format(six.text_type(e))
++        exceptions.handle(request, msg)
++
++    if not ports:
++        if include_empty_option:
++            return [("", _("No ports available")), ]
++        return []
++
++    if include_empty_option:
++        return [("", _("Select Port")), ] + ports
++    return ports
++
+diff --git a/openstack_dashboard/dashboards/project/tapservices/views.py b/openstack_dashboard/dashboards/project/tapservices/views.py
+new file mode 100644
+index 0000000..7ed2117
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/views.py
+@@ -0,0 +1,88 @@
++from django.core.urlresolvers import reverse
++from django.core.urlresolvers import reverse_lazy
++from django.utils.datastructures import SortedDict
++from django.utils.translation import pgettext_lazy
++from django.utils.translation import ugettext_lazy as _
++
++from horizon import exceptions
++from horizon import forms
++from horizon import messages
++from horizon import tables
++from horizon import tabs
++from horizon.utils import memoized
++from horizon import workflows
++from openstack_dashboard import api
++from openstack_dashboard.dashboards.project.tapservices \
++    import tables as taps_tables
++from openstack_dashboard.dashboards.project.tapservices \
++    import workflows as taps_workflows
++from openstack_dashboard.dashboards.project.tapservices.tapflows \
++    import tables as tapf_tables
++
++class IndexView(tables.DataTableView):
++    table_class = taps_tables.TapsTable
++    template_name = 'project/tapservices/index.html'
++    page_title = _("Tap Services")
++
++    @memoized.memoized_method
++    def get_data(self):
++
++        try:
++            tap_service = api.network.list_tap_service(self.request)
++        except Exception:
++            tap_service = []
++            msg = _('Tap service list can not be retrieved.')
++            exceptions.handle(self.request, msg)
++
++        return tap_service
++
++
++class CreateView(workflows.WorkflowView):
++    workflow_class = taps_workflows.CreateTap
++    ajax_template_name = 'project/tapservices/create.html'
++
++class DetailView(tables.MultiTableView):
++    table_classes = (tapf_tables.TapFlowsTable,)
++    template_name = 'project/tapservices/detail.html'
++    page_title = _("Tap Service Details: {{ tap_service.name }}")
++
++    def get_tapflows_data(self):
++        try:
++            tap_service = self._get_data()
++            tap_service_id=tap_service.id
++            tap_flows_pre = api.network.list_tap_flow(self.request, tap_service_id)
++            tap_flows = []
++            for tap_flow in tap_flows_pre:
++                tap_flow_tap_service_id = tap_flow['tap_service_id']
++                if tap_flow_tap_service_id == tap_service_id:
++                    tap_flows = tap_flows + [tap_flow]
++        except Exception:
++            tap_flows = []
++            msg = _('Tap flow list can not be retrieved.')
++            exceptions.handle(self.request, msg)
++        return tap_flows
++
++    @memoized.memoized_method
++    def _get_data(self):
++        try:
++            tap_service_id = self.kwargs['tap_service_id']
++            tap_service = api.network.show_tap_service(self.request, tap_service_id)
++        except Exception:
++            msg = _('Unable to retrieve details for tap service "%s".') \
++                % (tap_service_id)
++            exceptions.handle(self.request, msg,
++                              redirect=self.get_redirect_url())
++        return tap_service
++
++    def get_context_data(self, **kwargs):
++        context = super(DetailView, self).get_context_data(**kwargs)
++        tap_service = self._get_data()
++        context["tap_service"] = tap_service
++        table = taps_tables.TapsTable(self.request)
++        context["url"] = self.get_redirect_url()
++        context["actions"] = table.render_row_actions(tap_service)
++        return context
++
++    @staticmethod
++    def get_redirect_url():
++        return reverse_lazy('horizon:project:tapservices:index')
+diff --git a/openstack_dashboard/dashboards/project/tapservices/workflows.py b/openstack_dashboard/dashboards/project/tapservices/workflows.py
+new file mode 100644
+index 0000000..54a18c7
+--- /dev/null
++++ b/openstack_dashboard/dashboards/project/tapservices/workflows.py
+@@ -0,0 +1,115 @@
++import logging
++
++from django.conf import settings
++from django.core.urlresolvers import reverse
++from django.utils.translation import ugettext_lazy as _
++from django.views.decorators.debug import sensitive_variables
++import netaddr
++
++from horizon import exceptions
++from horizon import forms
++from horizon import messages
++from horizon.utils import functions
++from horizon.utils import memoized
++from horizon.utils import validators
++from horizon import workflows
++
++from openstack_dashboard import api
++
++from openstack_dashboard.dashboards.project.tapservices \
++    import utils as taps_utils
++
++LOG = logging.getLogger(__name__)
++
++
++class CreateTapInfoAction(workflows.Action):
++    tap_service_name = forms.CharField(max_length=255,
++                                       label=_("Tap Service Name"),
++                                       required=False)
++    description = forms.CharField(max_length=255, label=_("Description"),
++                                  required=False)
++
++    class Meta(object):
++        name = _("Tap Service")
++        help_text = _("Create a new tap service.")
++
++
++class CreateTapInfo(workflows.Step):
++    action_class = CreateTapInfoAction
++    contributes = ("tap_service_name", "description")
++
++
++class CreateTapDetailAction(workflows.Action):
++    port = forms.ChoiceField(label=_("Ports"),
++                             help_text=_("Create tap service with"
++                                         " this port"),
++                             widget=forms.SelectWidget(
++                                    transform=lambda x: ("%s (%s) %s" % 
++                                              (x.name, x.id, x["fixed_ips"][0]["ip_address"]))))
++
++    def __init__(self, request, *args, **kwargs):
++        super(CreateTapDetailAction, self).__init__(request, *args, **kwargs)
++        port_list = self.fields["port"].choices
++        if len(port_list) == 1:
++            self.fields['port'].initial = [port_list[0][0]]
++        if api.neutron.is_port_profiles_supported():
++            self.fields['profile'].choices = (
++                self.get_policy_profile_choices(request))
++
++    class Meta(object):
++        name = _("Port")
++        permissions = ('openstack.services.network',)
++        help_text = _("Select port for your tap service.")
++
++    def populate_port_choices(self, request, context):
++        return taps_utils.port_field_data(request)
++
++
++class CreateTapDetail(workflows.Step):
++    action_class = CreateTapDetailAction
++    contributes = ("port",)
++
++
++class CreateTap(workflows.Workflow):
++    slug = "create_tapservice"
++    name = ("Create Tap Service")
++    finalize_button_name = _("Create")
++    success_message = _('Created tap service "%s".')
++    failure_message = _('Unable to create tap service "%s".')
++    default_steps = (CreateTapInfo,
++                     CreateTapDetail)
++    wizard = True
++
++    def get_success_url(self):
++        return reverse("horizon:project:tapservices:index")
++
++    def get_failure_url(self):
++        return reverse("horizon:project:tapservices:index")
++
++    def format_status_message(self, message):
++        name = self.context.get('tap_service_name') or self.context.get('tap_service_id', '')
++        return message % name
++
++    def _create_tap_service(self, request, data):
++        try:
++            params = {'name': data['tap_service_name'],
++                      'description': data['description']}
++            port_id = data['port']
++            port = api.neutron.port_get(request, port_id,)
++            tap_service = api.network.create_tap_service(request,
++                                                         port_id,
++                                                         **params)
++            self.context['tap_service_id'] = tap_service.id
++            return True
++        except Exception:
++            exceptions.handle(request)
++            return False
++
++
++    @sensitive_variables('context')
++    def handle(self, request, context):
++        tap_service = self._create_tap_service(request, context)
++        if not tap_service:
++            return False
++        else:
++            return True
+diff --git a/openstack_dashboard/enabled/_1480_project_tapservices_panel.py b/openstack_dashboard/enabled/_1480_project_tapservices_panel.py
+new file mode 100644
+index 0000000..103e8b6
+--- /dev/null
++++ b/openstack_dashboard/enabled/_1480_project_tapservices_panel.py
+@@ -0,0 +1,9 @@
++# The slug of the panel to be added to HORIZON_CONFIG. Required.
++PANEL = 'tapservices'
++# The slug of the dashboard the PANEL associated with. Required.
++PANEL_DASHBOARD = 'project'
++# The slug of the panel group the PANEL is associated with.
++PANEL_GROUP = 'network'
++
++# Python panel class of the PANEL to be added.
++ADD_PANEL = 'openstack_dashboard.dashboards.project.tapservices.panel.TapServices'
+diff --git a/openstack_dashboard/local/local_settings.py.example b/openstack_dashboard/local/local_settings.py.example
+index e53ee35..ac6dfa8 100644
+--- a/openstack_dashboard/local/local_settings.py.example
++++ b/openstack_dashboard/local/local_settings.py.example
+@@ -217,6 +217,7 @@ OPENSTACK_CINDER_FEATURES = {
+ # balancer service, security groups, quotas, VPN service.
+ OPENSTACK_NEUTRON_NETWORK = {
+     'enable_router': True,
++    'enable_taas': True,
+     'enable_quotas': True,
+     'enable_ipv6': True,
+     'enable_distributed_router': False,
+diff --git a/openstack_dashboard/locale/ja/LC_MESSAGES/django.po b/openstack_dashboard/locale/ja/LC_MESSAGES/django.po
+index 111fac7..82c1d4c 100644
+--- a/openstack_dashboard/locale/ja/LC_MESSAGES/django.po
++++ b/openstack_dashboard/locale/ja/LC_MESSAGES/django.po
+@@ -9431,6 +9431,134 @@ msgstr "UTC"
+ msgid "UTC %(hour)s:%(min)s"
+ msgstr "UTC %(hour)s:%(min)s"
+ 
++#######
++msgid "Tap Service"
++msgstr "タップサービス"
++
++msgid "Tap Services"
++msgstr "タップサービス"
++
++msgid "Tap Service ID"
++msgstr "タップサービス ID"
++
++msgid "Tap service list can not be retrieved."
++msgstr "タップサービス一覧を取得できません。"
++
++msgid "Tap Service Details: {{ tap_service.name }}"
++msgstr "タップサービスの詳細: {{ tap_service.name }}"
++
++msgid "Unable to retrieve details for tap service \"%s\"."
++msgstr "タップサービス \"%s\" の詳細を取得できません。"
++
++msgid "Tap Service Overview"
++msgstr "タップサービスの概要"
++
++msgid "Create Tap Service"
++msgstr "タップサービスの生成"
++
++msgid "Create a new tap service."
++msgstr "新しいタップサービスを生成できます。"
++
++msgid "Tap Service Name"
++msgstr "タップサービス名"
++
++msgid "Create tap service with this port"
++msgstr "このポートでタップサービスを作成します。"
++
++msgid "Select port for your tap service."
++msgstr "ポートを選択してください。"
++
++msgid "Created tap service \"%s\"."
++msgstr "タップサービス \"%s\" を作成しました。"
++
++msgid "Unable to create tap service \"%s\"."
++msgstr "タップサービス \"%s\" の作成に失敗しました。"
++
++msgid "Delete Tap Service"
++msgid_plural "Delete Tap Services"
++msgstr[0] "タップサービスの削除"
++
++msgid "Deleted Tap Service"
++msgid_plural "Deleted Tap Services"
++msgstr[0] "タップサービスを削除しました"
++
++msgid "Failed to delete tap service %s"
++msgstr "タップサービス %s の削除に失敗しました"
++
++msgid "Tap Flow"
++msgstr "タップフロー"
++
++msgid "Tap Flows"
++msgstr "タップフロー"
++
++msgid "Tap Flow Name"
++msgstr "タップフロー名"
++
++msgid "Tap flow list can not be retrieved."
++msgstr "タップフロー一覧を取得できません。"
++
++msgid "Tap Flow Details: {{ tap_flow.name }}"
++msgstr "タップフローの詳細: {{ tap_flow.name }}"
++
++msgid "Unable to retrieve details for tap flow \"%s\"."
++msgstr "タップフロー \"%s\" の詳細を取得できません。"
++
++msgid "Both"
++msgstr "送受信"
++
++msgid "Create Tap Flow"
++msgstr "タップフローの設置"
++
++msgid "Create a new tap flow."
++msgstr "新しいタップフローを生成できます。"
++
++msgid "Whether to mirror the traffic leaving or ariving at the source port."
++msgstr "ソースポートにモニタするトラフィックの出力または入力を指定してください。"
++
++msgid "Select tap service for your tap flow."
++msgstr "タップサービスを選択してください。"
++
++msgid "Create tap flow with this tap service"
++msgstr "このタップサービスでタップフローを作成します。"
++
++msgid "Select port for your tap flow."
++msgstr "ポートを選択してください。"
++
++msgid "Create tap flow with this port"
++msgstr "このポートでタップフローを作成します。"
++
++msgid "Created tap flow \"%s\"."
++msgstr "タップフロー \"%s\" を作成しました。"
++
++msgid "Unable to create tap flow \"%s\"."
++msgstr "タップフロー \"%s\" の作成に失敗しました。"
++
++msgid "Delete Tap Flow"
++msgstr "タップフローの撤去"
++
++msgid "Delete Tap Flows"
++msgstr "タップフローの撤去"
++
++msgid "Deleted Tap Flow"
++msgid_plural "Deleted Tap Flows"
++msgstr[0] "タップフローを削除しました"
++
++msgid "Failed to delete tap flow %s"
++msgstr "タップフロー %s の削除に失敗しました"
++
++msgid "Select direction"
++msgstr "方向を選択してください"
++
++msgid "There are one or more tap services or tap flows still connected to the instance."
++msgstr "インスタンスにタップサービスまたはタップフローが設置されています。"
++
++msgid "Create Virtual Tap"
++msgstr "仮想タップの設置"
++
++msgid "Delete Virtual Tap"
++msgstr "仮想タップの撤去"
++#######
++
+ msgid "Unable to accept volume transfer."
+ msgstr "ボリュームの譲渡を受理できません。"
+ 
