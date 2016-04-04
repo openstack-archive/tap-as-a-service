@@ -43,7 +43,7 @@ class TapService(extension.NeutronClientExtension):
 
 
 class ListTapService(extension.ClientExtensionList, TapService):
-    # List tap services.
+    """List tap services."""
 
     shell_command = 'tap-service-list'
     list_columns = ['id', 'name', 'port']
@@ -52,7 +52,7 @@ class ListTapService(extension.ClientExtensionList, TapService):
 
 
 class CreateTapService(extension.ClientExtensionCreate, TapService):
-    # Create a tap service.
+    """Create a tap service."""
 
     shell_command = 'tap-service-create'
     list_columns = ['id', 'name', 'port', 'network']
@@ -88,19 +88,19 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
 
 
 class DeleteTapService(extension.ClientExtensionDelete, TapService):
-    # Delete a tap service.
+    """Delete a tap service."""
 
     shell_command = 'tap-service-delete'
 
 
 class ShowTapService(extension.ClientExtensionShow, TapService):
-    # Show a tap service.
+    """Show a tap service."""
 
     shell_command = 'tap-service-show'
 
 
 class UpdateTapService(extension.ClientExtensionUpdate, TapService):
-    # Update a tap service.
+    """Update a tap service."""
 
     shell_command = 'tap-service-update'
     list_columns = ['id', 'name']
