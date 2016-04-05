@@ -39,9 +39,6 @@ Any service (VM) that uses the mirrored data is attached to the port.
         'port_id': {'allow_post': True, 'allow_put': False,
                     'validate': {'type:uuid': None},
                     'is_visible': True},
-        'network_id': {'allow_post': True, 'allow_put': False,
-                       'validate': {'type:uuid': None},
-                       'is_visible': False}
     }
 
 TapFlow
@@ -103,7 +100,6 @@ extension
         "tap_service": {
             "description": "Test_Tap",
             "name": "Test",
-            "network_id": "8686f7d1-14e3-46ab-be3c-ccc0eead93cd",
             "port_id": "c9beb5a1-21f5-4225-9eaf-02ddccdd50a9",
             "tenant_id": "97e1586d580745d7b311406697aaf097"
         }
