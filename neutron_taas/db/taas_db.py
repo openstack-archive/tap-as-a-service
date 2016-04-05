@@ -35,7 +35,6 @@ class TapService(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     name = sa.Column(sa.String(255), nullable=True)
     description = sa.Column(sa.String(1024), nullable=True)
     port_id = sa.Column(sa.String(36), nullable=False)
-    network_id = sa.Column(sa.String(36), nullable=True)
 
 
 class TapFlow(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
@@ -92,8 +91,7 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'tenant_id': tap_service['tenant_id'],
                'name': tap_service['name'],
                'description': tap_service['description'],
-               'port_id': tap_service['port_id'],
-               'network_id': tap_service['network_id']}
+               'port_id': tap_service['port_id']}
 
         return self._fields(res, fields)
 
@@ -125,7 +123,6 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 name=t_s['name'],
                 description=t_s['description'],
                 port_id=t_s['port_id'],
-                network_id=t_s['network_id']
             )
             context.session.add(tap_service_db)
 

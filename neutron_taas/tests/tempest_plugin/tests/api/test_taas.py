@@ -37,13 +37,6 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     def test_create_tap_service_and_flow(self):
         network = self.create_network()
         port = self.create_port(network)
-        tap_service = self.create_tap_service(network_id=network['id'],
-                                              port_id=port['id'])
+        tap_service = self.create_tap_service(port_id=port['id'])
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=port['id'])
-
-    @test.attr(type=['negative'])
-    @test.idempotent_id('2d5024f5-bc80-4a31-a4a5-5bf5b14a8f3e')
-    def test_create_tap_service_with_wrong_network(self):
-        with testtools.ExpectedException(lib_exc.BadRequest):
-            self.create_tap_service(network_id='nonexistent')
