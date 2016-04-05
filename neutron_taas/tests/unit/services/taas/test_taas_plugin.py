@@ -55,7 +55,6 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'name': 'MyTap',
             'description': 'This is my tap service',
             'port_id': self._port_id,
-            'network_id': self._network_id,
         }
         self._tap_flow = {
             'description': 'This is my tap flow',
