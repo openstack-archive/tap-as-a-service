@@ -52,7 +52,7 @@ class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base):
         self.assertDictContainsSubset(extension_cmd, shell.COMMANDS['2.0'])
 
     def _test_create_tap_service(self, port_id="random_port",
-                                 network_id="random_net", name='',
+                                 name='',
                                  args_attr=None, position_names_attr=None,
                                  position_values_attr=None):
         cmd = tapservice.CreateTapService(test_cli20.MyApp(sys.stdout), None)
@@ -63,16 +63,15 @@ class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base):
         tenant_id = 'my-tenant'
         my_id = 'my-id'
         args = ['--tenant-id', tenant_id,
-                '--port', port_id,
-                '--network', network_id] + args_attr
-        position_names = ['port_id', 'network_id'] + position_names_attr
-        position_values = [port_id, network_id] + position_values_attr
+                '--port', port_id] + args_attr
+        position_names = ['port_id'] + position_names_attr
+        position_values = [port_id] + position_values_attr
         self._test_create_resource(self.resource, cmd, name, my_id, args,
                                    position_names, position_values,
                                    tenant_id=tenant_id)
 
     def test_create_tap_service_mandatory_params(self):
-        # Create tap_service: --port random_port --network random_network
+        # Create tap_service: --port random_port
         self._test_create_tap_service()
 
     def test_create_tap_service_all_params(self):

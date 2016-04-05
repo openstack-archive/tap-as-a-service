@@ -69,11 +69,8 @@ Resource Attribute Map:
 
 Note:
 
-'tap_services' data model refers to the Tap Service created. The port_id
-can be specified by the tenant to which the mirrored data is sent. If port_id
-is specified then the network_id will not be used. If the port_id is not
-specified, the TaaS will create a port on the network specified by the
-network_id.
+'tap_services' data model refers to the Tap Service created.
+port_id specifies destination port to which the mirrored data is sent.
 '''
 
 RESOURCE_ATTRIBUTE_MAP = {
@@ -93,9 +90,6 @@ RESOURCE_ATTRIBUTE_MAP = {
         'port_id': {'allow_post': True, 'allow_put': False,
                     'validate': {'type:uuid': None},
                     'is_visible': True},
-        'network_id': {'allow_post': True, 'allow_put': False,
-                       'validate': {'type:uuid': None},
-                       'is_visible': False}
     },
     'tap_flows': {
         'id': {'allow_post': False, 'allow_put': False,

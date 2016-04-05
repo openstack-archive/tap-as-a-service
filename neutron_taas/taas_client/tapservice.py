@@ -55,7 +55,7 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
     # Create a tap service.
 
     shell_command = 'tap-service-create'
-    list_columns = ['id', 'name', 'port', 'network']
+    list_columns = ['id', 'name', 'port']
 
     def add_known_arguments(self, parser):
         _add_updatable_args(parser)
@@ -65,23 +65,13 @@ class CreateTapService(extension.ClientExtensionCreate, TapService):
             required=True,
             metavar="PORT",
             help=_('Port to which the Tap service is connected.'))
-        parser.add_argument(
-            '--network',
-            dest='network_id',
-            required=True,
-            metavar="NETWORK",
-            help=_('Network to which the Tap service is connected.'))
 
     def args2body(self, parsed_args):
         client = self.get_client()
         port_id = neutronv20.find_resourceid_by_name_or_id(
             client, 'port',
             parsed_args.port_id)
-        network_id = neutronv20.find_resourceid_by_name_or_id(
-            client, 'network',
-            parsed_args.network_id)
-        body = {'port_id': port_id,
-                'network_id': network_id}
+        body = {'port_id': port_id}
         if parsed_args.tenant_id:
             body['tenant_id'] = parsed_args.tenant_id
         _updatable_args2body(parsed_args, body)
