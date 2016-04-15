@@ -39,3 +39,5 @@ r="$r)"
 r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas\.).*$"
 
 export DEVSTACK_GATE_TEMPEST_REGEX="$r"
+# bug 1571486
+export DEVSTACK_GATE_TEMPEST_ALL_PLUGINS=0
