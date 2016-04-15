@@ -95,7 +95,7 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         LOG.debug("TAAS PLUGIN INITIALIZED")
         self.endpoints = [TaasCallbacks(self)]
 
-        self.conn = n_rpc.create_connection(new=True)
+        self.conn = n_rpc.create_connection()
         self.conn.create_consumer(
             topics.TAAS_PLUGIN, self.endpoints, fanout=False)
         self.conn.consume_in_threads()
