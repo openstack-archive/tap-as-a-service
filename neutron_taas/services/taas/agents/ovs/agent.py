@@ -58,7 +58,7 @@ def main():
     # Set up RPC
     mgr = taas_ovs_agent.TaasOvsAgentRpcCallback(cfg.CONF)
     endpoints = [mgr]
-    conn = n_rpc.create_connection(new=True)
+    conn = n_rpc.create_connection()
     conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
     conn.consume_in_threads()
 
