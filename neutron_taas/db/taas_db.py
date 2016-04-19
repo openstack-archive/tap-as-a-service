@@ -22,6 +22,7 @@ from neutron_taas.extensions import taas
 from oslo_log import log as logging
 from oslo_utils import uuidutils
 import sqlalchemy as sa
+from sqlalchemy import orm
 from sqlalchemy.orm import exc
 
 
@@ -59,7 +60,15 @@ class TapIdAssociation(model_base.BASEV2):
     # id to be used by the Agents
     __tablename__ = 'tap_id_associations'
     tap_service_id = sa.Column(sa.String(36))
+    tap_service_id = sa.Column(sa.String(36),
+                               sa.ForeignKey("tap_services.id",
+                                             ondelete='CASCADE'))
     taas_id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    tap_service = orm.relationship(
+        TapService,
+        backref=orm.backref("tap_service_id",
+                            lazy="joined", cascade="delete"),
+        primaryjoin='TapService.id==TapIdAssociation.tap_service_id')
 
 
 class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
@@ -129,14 +138,18 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
             )
             context.session.add(tap_service_db)
 
+        return self._make_tap_service_dict(tap_service_db)
+
+    def create_tap_id_association(self, context, tap_service_id):
+        LOG.debug("create_tap_id_association() called")
         # create the TapIdAssociation object
         with context.session.begin(subtransactions=True):
             tap_id_association_db = TapIdAssociation(
-                tap_service_id=tap_service_db['id']
+                tap_service_id=tap_service_id
                 )
             context.session.add(tap_id_association_db)
 
-        return self._make_tap_service_dict(tap_service_db)
+        return self._make_tap_id_association_dict(tap_id_association_db)
 
     def create_tap_flow(self, context, tap_flow):
         LOG.debug("create_tap_flow() called")
@@ -165,9 +178,6 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
         if not count:
             raise taas.TapServiceNotFound(tap_id=id)
-
-        context.session.query(TapIdAssociation).filter_by(
-            tap_service_id=id).delete()
 
     def delete_tap_flow(self, context, id):
         LOG.debug("delete_tap_flow() called")
