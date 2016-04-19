@@ -129,14 +129,18 @@ class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
             )
             context.session.add(tap_service_db)
 
+        return self._make_tap_service_dict(tap_service_db)
+
+    def create_tap_id_association(self, context, tap_service_id):
+        LOG.debug("create_tap_id_association() called")
         # create the TapIdAssociation object
         with context.session.begin(subtransactions=True):
             tap_id_association_db = TapIdAssociation(
-                tap_service_id=tap_service_db['id']
+                tap_service_id=tap_service_id
                 )
             context.session.add(tap_id_association_db)
 
-        return self._make_tap_service_dict(tap_service_db)
+        return self._make_tap_id_association_dict(tap_id_association_db)
 
     def create_tap_flow(self, context, tap_flow):
         LOG.debug("create_tap_flow() called")
