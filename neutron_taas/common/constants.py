@@ -14,3 +14,4 @@
 #    under the License.
 
 TAAS = 'TAAS'
+TAAS_SERVICE_PLUGIN = "Neutron Tap as a Service Plugin"

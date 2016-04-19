@@ -18,7 +18,6 @@ import contextlib
 import mock
 import testtools
 
-from oslo_config import cfg
 from oslo_utils import uuidutils
 
 import neutron.common.rpc as n_rpc
@@ -28,6 +27,7 @@ from neutron.tests.unit import testlib_api
 
 import neutron_taas.db.taas_db  # noqa
 import neutron_taas.extensions.taas as taas_ext
+from neutron_taas.services.taas.service_drivers import taas_agent_api
 from neutron_taas.services.taas import taas_plugin
 
 
@@ -35,8 +35,16 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
     def setUp(self):
         super(TestTaasPlugin, self).setUp()
         mock.patch.object(n_rpc, 'create_connection', auto_spec=True).start()
-        mock.patch.object(taas_plugin, 'TaasCallbacks', auto_spec=True).start()
-        mock.patch.object(taas_plugin, 'TaasAgentApi', auto_spec=True).start()
+        mock.patch.object(taas_agent_api,
+                          'TaasCallbacks', auto_spec=True).start()
+        mock.patch.object(taas_agent_api,
+                          'TaasAgentApi', auto_spec=True).start()
+        self.driver = mock.MagicMock()
+        mock.patch('neutron.services.service_base.load_drivers',
+                   return_value=({'dummy_provider': self.driver},
+                                 'dummy_provider')).start()
+        mock.patch('neutron.db.servicetype_db.ServiceTypeManager.get_instance',
+                   return_value=mock.MagicMock()).start()
         self._plugin = taas_plugin.TaasPlugin()
         self._context = context.get_admin_context()
 
@@ -74,14 +82,10 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                                return_value=self._port_details):
             yield self._plugin.create_tap_service(self._context, req)
         self._tap_service['id'] = mock.ANY
-        expected_msg = {
-            'tap_service': self._tap_service,
-            'taas_id': mock.ANY,
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.create_tap_service(self._context, expected_msg,
-                                         self._host_id),
+
+        self.driver.assert_has_calls([
+            mock.call.create_tap_service(self._context, self._tap_service,
+                                         mock.ANY),
         ])
 
     @contextlib.contextmanager
@@ -97,15 +101,9 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             yield self._plugin.create_tap_flow(self._context, req)
         self._tap_flow['id'] = mock.ANY
         self._tap_service['id'] = mock.ANY
-        expected_msg = {
-            'tap_flow': self._tap_flow,
-            'port_mac': self._port_details['mac_address'],
-            'taas_id': mock.ANY,
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.create_tap_flow(self._context, expected_msg,
-                                      self._host_id),
+
+        self._plugin.driver.assert_has_calls([
+            mock.call.create_tap_flow(self._context, self._tap_flow),
         ])
 
     def test_create_tap_service(self):
@@ -117,51 +115,31 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         with testtools.ExpectedException(taas_ext.PortDoesNotBelongToTenant), \
             self.tap_service():
             pass
-        self.assertEqual([], self._plugin.agent_rpc.mock_calls)
+        self.assertEqual([], self.driver.mock_calls)
 
     def test_create_tap_service_reach_limit(self):
-        cfg.CONF.set_override('vlan_range_end', 3900, 'taas')  # same as start
-        with testtools.ExpectedException(taas_ext.TapServiceLimitReached), \
-            self.tap_service():
-            pass
-        self.assertEqual([], self._plugin.agent_rpc.mock_calls)
+        # TODO(Yoichiro):Need to move this test to taas_rpc test
+        pass
 
     def test_delete_tap_service(self):
         with self.tap_service() as ts:
             self._plugin.delete_tap_service(self._context, ts['id'])
-        expected_msg = {
-            'tap_service': self._tap_service,
-            'taas_id': mock.ANY,
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.delete_tap_service(self._context, expected_msg,
-                                         self._host_id),
+        self.driver.assert_has_calls([
+            mock.call.delete_tap_service(self._context, self._tap_service,
+                                         mock.ANY),
         ])
 
     def test_delete_tap_service_with_flow(self):
         with self.tap_service() as ts, \
             self.tap_flow(tap_service=ts['id']) as tf:
             self._plugin.delete_tap_service(self._context, ts['id'])
-        expected_msg = {
-            'tap_service': self._tap_service,
-            'taas_id': mock.ANY,
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.delete_tap_service(self._context, expected_msg,
-                                         self._host_id),
+        self._plugin.driver.assert_has_calls([
+            mock.call.delete_tap_service(self._context, self._tap_service,
+                                         mock.ANY),
         ])
         self._tap_flow['id'] = tf['id']
-        expected_msg = {
-            'tap_flow': self._tap_flow,
-            'taas_id': mock.ANY,
-            'port_mac': self._port_details['mac_address'],
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.delete_tap_flow(self._context, expected_msg,
-                                      self._host_id),
+        self._plugin.driver.assert_has_calls([
+            mock.call.delete_tap_flow(self._context, self._tap_flow),
         ])
 
     def test_delete_tap_service_non_existent(self):
@@ -183,13 +161,6 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             self.tap_flow(tap_service=ts['id']) as tf:
             self._plugin.delete_tap_flow(self._context, tf['id'])
         self._tap_flow['id'] = tf['id']
-        expected_msg = {
-            'tap_flow': self._tap_flow,
-            'taas_id': mock.ANY,
-            'port_mac': self._port_details['mac_address'],
-            'port': self._port_details,
-        }
-        self._plugin.agent_rpc.assert_has_calls([
-            mock.call.delete_tap_flow(self._context, expected_msg,
-                                      self._host_id),
+        self._plugin.driver.assert_has_calls([
+            mock.call.delete_tap_flow(self._context, self._tap_flow),
         ])
