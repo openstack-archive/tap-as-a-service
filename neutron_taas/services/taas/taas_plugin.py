@@ -1,3 +1,4 @@
+# Copyright (C) 2016 Midokura SARL.
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
 #
@@ -13,76 +14,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from oslo_config import cfg
-import oslo_messaging as messaging
-
-from neutron.common import rpc as n_rpc
-from neutron_taas.common import topics
+from neutron.common import exceptions as n_exc
+from neutron.db import servicetype_db as st_db
+from neutron.services import provider_configuration as pconf
+from neutron.services import service_base
+from neutron_taas.common import constants
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas as taas_ex
+
 from oslo_log import log as logging
+from oslo_utils import excutils
 
 LOG = logging.getLogger(__name__)
 
 
-class TaasCallbacks(object):
-    """Currently there are no callbacks to the Taas Plugin."""
-
-    def __init__(self, plugin):
-        super(TaasCallbacks, self).__init__()
-        self.plugin = plugin
-        return
-
-
-class TaasAgentApi(object):
-    """RPC calls to agent APIs"""
-
-    def __init__(self, topic, host):
-        self.host = host
-        target = messaging.Target(topic=topic, version='1.0')
-        self.client = n_rpc.get_client(target)
-        return
-
-    def create_tap_service(self, context, tap_service, host):
-        LOG.debug("In RPC Call for Create Tap Service: Host=%s, MSG=%s" %
-                  (host, tap_service))
-
-        cctxt = self.client.prepare(fanout=True)
-        cctxt.cast(context, 'create_tap_service', tap_service=tap_service,
-                   host=host)
-
-        return
-
-    def create_tap_flow(self, context, tap_flow_msg, host):
-        LOG.debug("In RPC Call for Create Tap Flow: Host=%s, MSG=%s" %
-                  (host, tap_flow_msg))
-
-        cctxt = self.client.prepare(fanout=True)
-        cctxt.cast(context, 'create_tap_flow', tap_flow_msg=tap_flow_msg,
-                   host=host)
-
-        return
-
-    def delete_tap_service(self, context, tap_service, host):
-        LOG.debug("In RPC Call for Delete Tap Service: Host=%s, MSG=%s" %
-                  (host, tap_service))
-
-        cctxt = self.client.prepare(fanout=True)
-        cctxt.cast(context, 'delete_tap_service', tap_service=tap_service,
-                   host=host)
-
-        return
-
-    def delete_tap_flow(self, context, tap_flow_msg, host):
-        LOG.debug("In RPC Call for Delete Tap Flow: Host=%s, MSG=%s" %
-                  (host, tap_flow_msg))
-
-        cctxt = self.client.prepare(fanout=True)
-        cctxt.cast(context, 'delete_tap_flow', tap_flow_msg=tap_flow_msg,
-                   host=host)
-
-        return
+def add_provider_configuration(type_manager, service_type):
+    type_manager.add_provider_configuration(
+        service_type,
+        pconf.ProviderConfiguration('neutron_taas'))
 
 
 class TaasPlugin(taas_db.Tass_db_Mixin):
@@ -93,19 +42,23 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
     def __init__(self):
 
         LOG.debug("TAAS PLUGIN INITIALIZED")
-        self.endpoints = [TaasCallbacks(self)]
-
-        self.conn = n_rpc.create_connection(new=True)
-        self.conn.create_consumer(
-            topics.TAAS_PLUGIN, self.endpoints, fanout=False)
-        self.conn.consume_in_threads()
-
-        self.agent_rpc = TaasAgentApi(
-            topics.TAAS_AGENT,
-            cfg.CONF.host
-        )
+        self.service_type_manager = st_db.ServiceTypeManager.get_instance()
+        add_provider_configuration(self.service_type_manager, constants.TAAS)
+        self._load_drivers()
+        self.driver = self._get_driver_for_provider(self.default_provider)
 
         return
+
+    def _load_drivers(self):
+        """Loads plugin-drivers specified in configuration."""
+        self.drivers, self.default_provider = service_base.load_drivers(
+            'TAAS', self)
+
+    def _get_driver_for_provider(self, provider):
+        if provider in self.drivers:
+            return self.drivers[provider]
+        raise n_exc.Invalid("Error retrieving driver for provider %s" %
+                            provider)
 
     def create_tap_service(self, context, tap_service):
         LOG.debug("create_tap_service() called")
@@ -129,34 +82,29 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         else:
             LOG.debug("Host could not be found, Port Binding disbaled!")
 
+        self.driver.create_tap_service(context, tap_service)
+
         # Create tap service in the db model
-        ts = super(TaasPlugin, self).create_tap_service(context, tap_service)
-        # Get taas id associated with the Tap Service
-        tap_id_association = self.get_tap_id_association(
-            context,
-            tap_service_id=ts['id'])
+        with context.session.begin(subtransactions=True):
+            ts = super(TaasPlugin, self).create_tap_service(context,
+                                                            tap_service)
+            self.driver.create_tap_service_precommit(context, ts)
 
-        taas_vlan_id = (tap_id_association['taas_id'] +
-                        cfg.CONF.taas.vlan_range_start)
-
-        if taas_vlan_id > cfg.CONF.taas.vlan_range_end:
-            raise taas_ex.TapServiceLimitReached()
-
-        rpc_msg = {'tap_service': ts, 'taas_id': taas_vlan_id, 'port': port}
-
-        self.agent_rpc.create_tap_service(context, rpc_msg, host)
+        try:
+            self.driver.create_tap_service_postcommit(context, ts)
+        except Exception:
+            with excutils.save_and_reraise_exception():
+                LOG.error("Failed to create tap service on driver,"
+                          "deleting tap_service %s", ts['id'])
+                super(TaasPlugin, self).delete_tap_service(context, ts['id'])
 
         return ts
 
     def delete_tap_service(self, context, id):
         LOG.debug("delete_tap_service() called")
 
-        # Get taas id associated with the Tap Service
-        tap_id_association = self.get_tap_id_association(
-            context,
-            tap_service_id=id)
-
-        ts = self.get_tap_service(context, id)
+        # Check if tap service exists
+        self.get_tap_service(context, id)
 
         # Get all the tap Flows that are associated with the Tap service
         # and delete them as well
@@ -167,25 +115,18 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         for t_f in t_f_collection:
             self.delete_tap_flow(context, t_f['id'])
 
-        # Get the port and the host that it is on
-        port_id = ts['port_id']
+        self.driver.delete_tap_service(context, id)
 
-        port = self._get_port_details(context, port_id)
+        with context.session.begin(subtransactions=True):
+            super(TaasPlugin, self).delete_tap_service(context, id)
+            self.driver.delete_tap_service_precommit(context, id)
 
-        host = port['binding:host_id']
-
-        super(TaasPlugin, self).delete_tap_service(context, id)
-
-        taas_vlan_id = (tap_id_association['taas_id'] +
-                        cfg.CONF.taas.vlan_range_start)
-
-        rpc_msg = {'tap_service': ts,
-                   'taas_id': taas_vlan_id,
-                   'port': port}
-
-        self.agent_rpc.delete_tap_service(context, rpc_msg, host)
-
-        return ts
+        try:
+            self.driver.delete_tap_service_postcommit(context, id)
+        except Exception:
+            with excutils.save_and_reraise_exception():
+                LOG.error("Failed to delete tap service on driver. "
+                          "tap_sevice: %s", id)
 
     def create_tap_flow(self, context, tap_flow):
         LOG.debug("create_tap_flow() called")
@@ -199,56 +140,42 @@ class TaasPlugin(taas_db.Tass_db_Mixin):
         ts = self.get_tap_service(context, t_f['tap_service_id'])
         ts_tenant_id = ts['tenant_id']
 
-        taas_id = (self.get_tap_id_association(
-            context,
-            tap_service_id=ts['id'])['taas_id'] +
-            cfg.CONF.taas.vlan_range_start)
-
         if tenant_id != ts_tenant_id:
             raise taas_ex.TapServiceNotBelongToTenant()
 
-        # Extract the host where the source port is located
-        port = self._get_port_details(context, t_f['source_port'])
-        host = port['binding:host_id']
-        port_mac = port['mac_address']
+        self.driver.create_tap_flow(context, tap_flow)
 
         # create tap flow in the db model
-        tf = super(TaasPlugin, self).create_tap_flow(context, tap_flow)
+        with context.session.begin(subtransactions=True):
+            tf = super(TaasPlugin, self).create_tap_flow(context, tap_flow)
+            self.driver.create_tap_flow_precommit(context, tf)
 
-        # Send RPC message to both the source port host and
-        # tap service(destination) port host
-        rpc_msg = {'tap_flow': tf,
-                   'port_mac': port_mac,
-                   'taas_id': taas_id,
-                   'port': port}
-
-        self.agent_rpc.create_tap_flow(context, rpc_msg, host)
+        try:
+            self.driver.create_tap_flow_postcommit(context, tf)
+        except Exception:
+            with excutils.save_and_reraise_exception():
+                LOG.error("Failed to create tap flow on driver,"
+                          "deleting tap_flow %s", tf['id'])
+                super(TaasPlugin, self).delete_tap_flow(context, tf['id'])
 
         return tf
 
     def delete_tap_flow(self, context, id):
         LOG.debug("delete_tap_flow() called")
 
-        tf = self.get_tap_flow(context, id)
+        # Check if tap flow exists
+        self.get_tap_flow(context, id)
 
-        taas_id = (self.get_tap_id_association(
-            context,
-            tf['tap_service_id'])['taas_id'] +
-            cfg.CONF.taas.vlan_range_start)
+        self.driver.delete_tap_flow(context, id)
 
-        port = self._get_port_details(context, tf['source_port'])
-        host = port['binding:host_id']
-        port_mac = port['mac_address']
+        with context.session.begin(subtransactions=True):
+            super(TaasPlugin, self).delete_tap_flow(context, id)
+            self.driver.delete_tap_flow_precommit(context, id)
 
-        super(TaasPlugin, self).delete_tap_flow(context, id)
-
-        # Send RPC message to both the source port host and
-        # tap service(destination) port host
-        rpc_msg = {'tap_flow': tf,
-                   'port_mac': port_mac,
-                   'taas_id': taas_id,
-                   'port': port}
-
-        self.agent_rpc.delete_tap_flow(context, rpc_msg, host)
-
-        return tf
+        try:
+            self.driver.delete_tap_flow_postcommit(context, id)
+        except Exception:
+            with excutils.save_and_reraise_exception():
+                with excutils.save_and_reraise_exception():
+                    LOG.error("Failed to delete tap flow on driver. "
+                              "tap_flow: %s", id)
