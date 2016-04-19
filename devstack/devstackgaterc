@@ -27,6 +27,10 @@ OVERRIDE_ENABLED_SERVICES+=,taas,taas_openvswitch_agent
 OVERRIDE_ENABLED_SERVICES+=,tempest,dstat
 export OVERRIDE_ENABLED_SERVICES
 
+# Set config file
+Q_PLUGIN_EXTRA_CONF_PATH=/etc/neutron
+Q_PLUGIN_EXTRA_CONF_FILES=(taas_plugin.ini)
+
 # Begin list of exclusions.
 r="^(?!.*"
 
