@@ -69,7 +69,7 @@ class TapIdAssociation(model_base.BASEV2):
         primaryjoin='TapService.id==TapIdAssociation.tap_service_id')
 
 
-class Tass_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
+class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
     def _core_plugin(self):
         return manager.NeutronManager.get_plugin()

@@ -37,7 +37,7 @@ def add_provider_configuration(type_manager, service_type):
         pconf.ProviderConfiguration('neutron_taas'))
 
 
-class TaasPlugin(taas_db.Tass_db_Mixin):
+class TaasPlugin(taas_db.Taas_db_Mixin):
 
     supported_extension_aliases = ["taas"]
     path_prefix = "/taas"
