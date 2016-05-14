@@ -38,13 +38,22 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         self.plugin = importutils.import_object(DB_PLUGIN_KLAAS)
         self.tenant_id = 'fake-tenant-id'
 
-    def _get_tap_service_data(self, name=None, port_id=None):
-        name = name or 'ts-1'
+    def _get_tap_service_data(self, name='ts-1', port_id=None):
         port_id = port_id or _uuid()
         return {"tap_service": {"name": name,
                                 "tenant_id": self.tenant_id,
                                 "description": "test tap service",
                                 "port_id": port_id}}
+
+    def _get_tap_flow_data(self, tap_service_id, name='tf-1',
+                           direction='BOTH', source_port=None):
+        source_port = source_port or _uuid()
+        return {"tap_flow": {"name": name,
+                             "tenant_id": self.tenant_id,
+                             "description": "test tap flow",
+                             "tap_service_id": tap_service_id,
+                             "source_port": source_port,
+                             "direction": direction}}
 
     def _get_tap_service(self, tap_service_id):
         """Helper method to retrieve tap service."""
@@ -72,6 +81,31 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         """Helper method to delete tap service."""
         with self.ctx.session.begin(subtransactions=True):
             return self.mixin.delete_tap_service(self.ctx, tap_service_id)
+
+    def _get_tap_flow(self, tap_flow_id):
+        """Helper method to retrieve tap flow."""
+        with self.ctx.session.begin(subtransactions=True):
+            return self.mixin.get_tap_flow(self.ctx, tap_flow_id)
+
+    def _get_tap_flows(self):
+        """Helper method to retrieve all tap flows."""
+        with self.ctx.session.begin(subtransactions=True):
+            return self.mixin.get_tap_flows(self.ctx)
+
+    def _create_tap_flow(self, tap_flow):
+        """Helper method to create tap flow."""
+        with self.ctx.session.begin(subtransactions=True):
+            return self.mixin.create_tap_flow(self.ctx, tap_flow)
+
+    def _update_tap_flow(self, tap_flow_id, tap_flow):
+        """Helper method to update tap flow."""
+        with self.ctx.session.begin(subtransactions=True):
+            return self.mixin.update_tap_flow(self.ctx, tap_flow_id, tap_flow)
+
+    def _delete_tap_flow(self, tap_flow_id):
+        """Helper method to delete tap flow."""
+        with self.ctx.session.begin(subtransactions=True):
+            return self.mixin.delete_tap_flow(self.ctx, tap_flow_id)
 
     def test_tap_service_get(self):
         """Test to retrieve a tap service from the database."""
@@ -118,3 +152,57 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         self._delete_tap_service(result['id'])
         self.assertRaises(taas.TapServiceNotFound,
                           self._get_tap_service, result['id'])
+
+    def test_tap_flow_get(self):
+        """Test to retrieve a tap flow from the database."""
+        ts_data = self._get_tap_service_data()
+        ts = self._create_tap_service(ts_data)
+        tf_name = 'test-tap-flow'
+        tf_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                          name=tf_name)
+        tf = self._create_tap_flow(tf_data)
+        get_tf = self._get_tap_flow(tf['id'])
+        self.assertEqual(tf_name, get_tf['name'])
+
+    def test_tap_flow_create(self):
+        """Test to create a tap flow in the database."""
+        ts_data = self._get_tap_service_data()
+        ts = self._create_tap_service(ts_data)
+        tf_name = 'test-tap-flow'
+        tf_direction = 'IN'
+        tf_source_port = _uuid()
+        tf_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                          name=tf_name,
+                                          source_port=tf_source_port,
+                                          direction=tf_direction)
+        tf = self._create_tap_flow(tf_data)
+        self.assertEqual(tf_name, tf['name'])
+        self.assertEqual(tf_direction, tf['direction'])
+        self.assertEqual(tf_source_port, tf['source_port'])
+
+    def test_tap_flow_list(self):
+        """Test to retrieve all tap flows from the database."""
+        ts_data = self._get_tap_service_data()
+        ts = self._create_tap_service(ts_data)
+        tf_1_name = "tf-1"
+        tf_1_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                            name=tf_1_name)
+        tf_2_name = "tf-2"
+        tf_2_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                            name=tf_2_name)
+        self._create_tap_flow(tf_1_data)
+        self._create_tap_flow(tf_2_data)
+        tap_flows = self._get_tap_flows()
+        self.assertEqual(2, len(tap_flows))
+
+    def test_tap_flow_delete(self):
+        """Test to delete a tap flow from the database."""
+        ts_data = self._get_tap_service_data()
+        ts = self._create_tap_service(ts_data)
+        tf_name = "test-tap-flow"
+        tf_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                          name=tf_name)
+        tf = self._create_tap_flow(tf_data)
+        self._delete_tap_flow(tf['id'])
+        self.assertRaises(taas.TapFlowNotFound,
+                          self._get_tap_flow, tf['id'])
