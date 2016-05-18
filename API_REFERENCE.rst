@@ -279,7 +279,3 @@ Workflow Sequence
 
 5. Observe the mirrored traffic on the monitoring VM by running tools such as
    tcpdump.
-
-
-You can watch our tech talk session which included a live demo for more
-information about using TaaS, https://www.youtube.com/watch?v=_cAkRUB3TCE
