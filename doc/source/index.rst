@@ -16,6 +16,7 @@ Contents:
    api_reference
    contributing
    specs/index
+   presentations
 
 Indices and tables
 ==================
