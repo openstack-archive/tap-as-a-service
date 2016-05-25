@@ -61,7 +61,7 @@ class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
 
-direction_enum = [None, 'IN', 'OUT', 'BOTH']
+direction_enum = ['IN', 'OUT', 'BOTH']
 
 
 '''
@@ -117,7 +117,7 @@ RESOURCE_ATTRIBUTE_MAP = {
                         'validate': {'type:uuid': None},
                         'required_by_policy': True, 'is_visible': True},
         'direction': {'allow_post': True, 'allow_put': False,
-                      'validate': {'type:string': direction_enum},
+                      'validate': {'type:values': direction_enum},
                       'is_visible': True}
     }
 }

@@ -71,11 +71,11 @@ TapFlow Represents the port from which the traffic needs to be mirrored.
                         'validate': {'type:uuid': None},
                         'required_by_policy': True, 'is_visible': True},
         'direction': {'allow_post': True, 'allow_put': False,
-                      'validate': {'type:string': direction_enum},
+                      'validate': {'type:values': direction_enum},
                       'is_visible': True}
     }
 
-    direction_enum = [None, 'IN', 'OUT', 'BOTH']
+    direction_enum = ['IN', 'OUT', 'BOTH']
 
 
 Multiple TapFlow instances can be associated with a single TapService
