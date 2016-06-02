@@ -18,6 +18,7 @@ from neutron.db import common_db_mixin as base_db
 from neutron.db import model_base
 from neutron.db import models_v2
 from neutron import manager
+from neutron.plugins.common import constants
 from neutron_taas.extensions import taas
 from oslo_log import log as logging
 from oslo_utils import uuidutils
@@ -36,6 +37,7 @@ class TapService(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     name = sa.Column(sa.String(255), nullable=True)
     description = sa.Column(sa.String(1024), nullable=True)
     port_id = sa.Column(sa.String(36), nullable=False)
+    status = sa.Column(sa.String(16), nullable=False)
 
 
 class TapFlow(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
@@ -51,6 +53,7 @@ class TapFlow(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     source_port = sa.Column(sa.String(36), nullable=False)
     direction = sa.Column(sa.Enum('IN', 'OUT', 'BOTH',
                                   name='tapflows_direction'))
+    status = sa.Column(sa.String(16), nullable=False)
 
 
 class TapIdAssociation(model_base.BASEV2):
@@ -99,7 +102,8 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'tenant_id': tap_service['tenant_id'],
                'name': tap_service['name'],
                'description': tap_service['description'],
-               'port_id': tap_service['port_id']}
+               'port_id': tap_service['port_id'],
+               'status': tap_service['status']}
 
         return self._fields(res, fields)
 
@@ -116,7 +120,8 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'name': tap_flow['name'],
                'description': tap_flow['description'],
                'source_port': tap_flow['source_port'],
-               'direction': tap_flow['direction']}
+               'direction': tap_flow['direction'],
+               'status': tap_flow['status']}
 
         return self._fields(res, fields)
 
@@ -131,6 +136,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 name=t_s['name'],
                 description=t_s['description'],
                 port_id=t_s['port_id'],
+                status=constants.ACTIVE,
             )
             context.session.add(tap_service_db)
 
@@ -161,7 +167,8 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 description=t_f['description'],
                 tap_service_id=t_f['tap_service_id'],
                 source_port=t_f['source_port'],
-                direction=t_f['direction']
+                direction=t_f['direction'],
+                status=constants.ACTIVE,
             )
             context.session.add(tap_flow_db)
 
