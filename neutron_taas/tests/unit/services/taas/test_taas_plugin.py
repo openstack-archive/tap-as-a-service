@@ -73,6 +73,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                                return_value=self._port_details):
             yield self._plugin.create_tap_service(self._context, req)
         self._tap_service['id'] = mock.ANY
+        self._tap_service['status'] = 'ACTIVE'
         expected_msg = {
             'tap_service': self._tap_service,
             'taas_id': mock.ANY,
@@ -95,6 +96,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
                                return_value=self._port_details):
             yield self._plugin.create_tap_flow(self._context, req)
         self._tap_flow['id'] = mock.ANY
+        self._tap_flow['status'] = 'ACTIVE'
         self._tap_service['id'] = mock.ANY
         expected_msg = {
             'tap_flow': self._tap_flow,
