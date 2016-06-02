@@ -63,6 +63,7 @@ class TapServiceLimitReached(qexception.OverQuota):
 
 direction_enum = ['IN', 'OUT', 'BOTH']
 
+tap_status_enum = ['Success', 'Inprogress', 'Failed']
 
 '''
 Resource Attribute Map:
@@ -95,7 +96,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                     'is_visible': True},
         'network_id': {'allow_post': True, 'allow_put': False,
                        'validate': {'type:uuid': None},
-                       'is_visible': False}
+                       'is_visible': False},
+        'status': {'allow_post': False, 'allow_put': False,
+                   'validate': {'type:values': tap_status_enum},
+                   'is_visible': True}
     },
     'tap_flows': {
         'id': {'allow_post': False, 'allow_put': False,
@@ -118,7 +122,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                         'required_by_policy': True, 'is_visible': True},
         'direction': {'allow_post': True, 'allow_put': False,
                       'validate': {'type:values': direction_enum},
-                      'is_visible': True}
+                      'is_visible': True},
+        'status': {'allow_post': False, 'allow_put': False,
+                   'validate': {'type:values': tap_status_enum},
+                   'is_visible': True}
     }
 }
 
