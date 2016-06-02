@@ -65,7 +65,7 @@ class CLITestV20TapFlowJSON(test_cli20.CLITestV20Base):
         my_id = 'my-id'
         args = ['--tenant-id', tenant_id,
                 '--port', port_id,
-                '--service', service_id,
+                '--tap-service', service_id,
                 '--direction', direction] + arg_attr
         pos_names = ['source_port', 'tap_service_id', 'direction'] + name_attr
         pos_values = [port_id, service_id, direction] + val_attr
