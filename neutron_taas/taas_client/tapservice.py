@@ -46,7 +46,7 @@ class ListTapService(extension.ClientExtensionList, TapService):
     """List tap services."""
 
     shell_command = 'tap-service-list'
-    list_columns = ['id', 'name', 'port']
+    list_columns = ['id', 'name', 'port', 'status']
     pagination_support = True
     sorting_support = True
 
