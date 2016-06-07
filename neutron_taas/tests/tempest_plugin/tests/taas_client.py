@@ -15,6 +15,7 @@
 
 from tempest import config
 from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
 
 from neutron_taas.tests.tempest_plugin.services import client
 
@@ -49,7 +50,7 @@ class TaaSClientMixin(object):
             name=data_utils.rand_name("tap_service"),
             **kwargs)
         tap_service = body['tap_service']
-        self.addCleanup(self._delete_wrapper,
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
                         self.tap_services_client.delete_tap_service,
                         tap_service['id'])
         return tap_service
@@ -59,7 +60,7 @@ class TaaSClientMixin(object):
             name=data_utils.rand_name("tap_service"),
             **kwargs)
         tap_flow = body['tap_flow']
-        self.addCleanup(self._delete_wrapper,
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
                         self.tap_flows_client.delete_tap_flow,
                         tap_flow['id'])
         return tap_flow
