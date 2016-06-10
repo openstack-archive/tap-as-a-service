@@ -213,7 +213,8 @@ class TaasPluginBase(service_base.ServicePluginBase):
     def get_plugin_description(self):
         return "Tap Service Plugin"
 
-    def get_plugin_type(self):
+    @classmethod
+    def get_plugin_type(cls):
         return constants.TAAS
 
     @abc.abstractmethod
