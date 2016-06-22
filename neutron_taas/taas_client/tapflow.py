@@ -44,7 +44,7 @@ class TapFlow(extension.NeutronClientExtension):
 
 
 class ListTapFlow(extension.ClientExtensionList, TapFlow):
-    # List tap flows.
+    """List tap flows."""
 
     shell_command = 'tap-flow-list'
     list_columns = ['id', 'name', 'source_port', 'tap_service_id']
@@ -53,7 +53,7 @@ class ListTapFlow(extension.ClientExtensionList, TapFlow):
 
 
 class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
-    # Create a tap flow.
+    """Create a tap flow."""
 
     shell_command = 'tap-flow-create'
     list_columns = ['id', 'name', 'direction', 'source_port']
@@ -94,19 +94,19 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
 
 
 class DeleteTapFlow(extension.ClientExtensionDelete, TapFlow):
-    # Delete a tap flow.
+    """Delete a tap flow."""
 
     shell_command = 'tap-flow-delete'
 
 
 class ShowTapFlow(extension.ClientExtensionShow, TapFlow):
-    # Show a tap flow.
+    """Show a tap flow."""
 
     shell_command = 'tap-flow-show'
 
 
 class UpdateTapFlow(extension.ClientExtensionUpdate, TapFlow):
-    # Update a tap flow.
+    """Update a tap flow."""
 
     shell_command = 'tap-flow-update'
     list_columns = ['id', 'name']
