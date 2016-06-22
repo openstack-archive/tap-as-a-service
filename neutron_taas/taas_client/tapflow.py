@@ -76,7 +76,7 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             metavar="DIRECTION",
             choices=['IN', 'OUT', 'BOTH'],
             type=utils.convert_to_uppercase,
-            help=_('Direction of the Tap flow .'))
+            help=_('Direction of the Tap flow.'))
 
     def args2body(self, parsed_args):
         client = self.get_client()
