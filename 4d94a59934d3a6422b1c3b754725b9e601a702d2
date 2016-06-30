@@ -1,0 +1,9 @@
+Code-Review+2: Anil Rao <arao012@gmail.com>
+Code-Review+2: Soichi Shigeta <shigets@labs.fujitsu.com>
+Workflow+1: Soichi Shigeta <shigets@labs.fujitsu.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 30 Jun 2016 07:59:28 +0000
+Reviewed-on: https://review.openstack.org/328051
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
