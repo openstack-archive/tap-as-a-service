@@ -15,6 +15,7 @@
 
 
 from neutron.agent.common import config
+from neutron_taas.common import constants
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
 
@@ -42,6 +43,19 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         self.conf = conf
         taas_driver_class_path = cfg.CONF.taas.driver
         self.taas_enabled = cfg.CONF.taas.enabled
+        self.neutron_service_plugins = cfg.CONF.service_plugins
+
+        # None means ovs-agent has no information on the server
+        # configuration due to the lack of RPC support.
+        if self.neutron_service_plugins is not None:
+            taas_plugin_configured = (constants.TAAS.lower()
+                                      in self.neutron_service_plugins)
+            if taas_plugin_configured and not self.taas_enabled:
+                msg = _("TaaS plugin is configured in the server side, but "
+                        "it is disabled in it's config file.")
+                LOG.error(msg)
+                raise SystemExit(1)
+            self.taas_enabled = self.taas_enabled and taas_plugin_configured
 
         self.root_helper = config.get_root_helper(conf)
 
@@ -61,6 +75,8 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         return
 
     def _invoke_driver_for_plugin_api(self, context, args, func_name):
+        if not self.taas_enabled:
+            return
         LOG.debug("Invoking Driver for %(func_name)s from agent",
                   {'func_name': func_name})
 
