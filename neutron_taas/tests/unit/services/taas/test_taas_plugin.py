@@ -20,6 +20,7 @@ import testtools
 
 from oslo_utils import uuidutils
 
+from neutron.common import exceptions as n_exc
 import neutron.common.rpc as n_rpc
 import neutron.common.utils as n_utils
 from neutron import context
@@ -242,3 +243,22 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             self.driver.configure_mock(**attr)
             with testtools.ExpectedException(DummyError):
                 self._plugin.delete_tap_flow(self._context, tf['id'])
+
+    def test_delete_tap_service_with_no_port(self):
+        with self.tap_service() as ts:
+            mock.patch.object(self._plugin, '_get_port_details',
+                              side_effect=n_exc.PortNotFound(
+                                  port_id=self._port_id))
+
+            self._plugin.delete_tap_service(self._context, ts['id'])
+        self.driver.assert_has_calls([
+            mock.call.delete_tap_service_precommit(mock.ANY),
+            mock.call.delete_tap_service_postcommit(mock.ANY),
+        ])
+
+        pre_args = self.driver.delete_tap_service_precommit.call_args[0][0]
+        self.assertEqual(self._context, pre_args._plugin_context)
+        self.assertEqual(self._tap_service, pre_args.tap_service)
+        post_args = self.driver.delete_tap_service_postcommit.call_args[0][0]
+        self.assertEqual(self._context, post_args._plugin_context)
+        self.assertEqual(self._tap_service, post_args.tap_service)
