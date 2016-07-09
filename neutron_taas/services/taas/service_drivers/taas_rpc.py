@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron.common import exceptions as n_exc
 from neutron.common import rpc as n_rpc
 from neutron_taas.common import topics
 from neutron_taas.extensions import taas as taas_ex
@@ -100,9 +101,15 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         tap_id_association = context.tap_id_association
         taas_vlan_id = (tap_id_association['taas_id'] +
                         cfg.CONF.taas.vlan_range_start)
-        port = self.service_plugin._get_port_details(context._plugin_context,
-                                                     ts['port_id'])
-        host = port['binding:host_id']
+        try:
+            port = self.service_plugin._get_port_details(
+                context._plugin_context,
+                ts['port_id'])
+            host = port['binding:host_id']
+        except n_exc.PortNotFound:
+            # if not found, we just pass to None
+            port = None
+            host = None
 
         rpc_msg = {'tap_service': ts,
                    'taas_id': taas_vlan_id,

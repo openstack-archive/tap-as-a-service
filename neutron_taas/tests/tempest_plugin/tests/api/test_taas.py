@@ -37,3 +37,12 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         tap_service = self.create_tap_service(port_id=port['id'])
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=port['id'])
+
+    @test.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
+    def test_delete_tap_service_before_delete_port(self):
+        network = self.create_network()
+        port = self.create_port(network)
+        tap_service = self.create_tap_service(port_id=port['id'])
+        # delete port
+        self.ports_client.delete_port(port['id'])
+        self.tap_services_client.delete_tap_service(tap_service['id'])
