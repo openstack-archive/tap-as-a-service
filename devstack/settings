@@ -4,3 +4,5 @@ TAAS_PLUGIN_PATH=$ABSOLUTE_PATH/..
 TAAS_PLUGIN_CONF_FILE="/etc/neutron/taas_plugin.ini"
 TAAS_OVS_AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-taas-openvswitch-agent"
 TAAS_OVS_AGENT_CONF_FILE="/etc/neutron/taas.ini"
+Q_PLUGIN_EXTRA_CONF_PATH=/etc/neutron
+Q_PLUGIN_EXTRA_CONF_FILES+=(taas_plugin.ini)
