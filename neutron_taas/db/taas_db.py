@@ -23,9 +23,9 @@ from neutron_lib import constants
 from neutron_lib.db import model_base
 from neutron_lib.plugins import directory
 from neutron_taas.extensions import taas
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import uuidutils
-
 
 LOG = logging.getLogger(__name__)
 
@@ -68,12 +68,13 @@ class TapIdAssociation(model_base.BASEV2):
     __tablename__ = 'tap_id_associations'
     tap_service_id = sa.Column(sa.String(36),
                                sa.ForeignKey("tap_services.id",
-                                             ondelete='CASCADE'))
-    taas_id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+                                             ondelete='SET NULL'),
+                               nullable=True)
+    taas_id = sa.Column(sa.Integer, primary_key=True, unique=True)
     tap_service = orm.relationship(
         TapService,
         backref=orm.backref("tap_service_id",
-                            lazy="joined", cascade="delete"),
+                            lazy="joined"),
         primaryjoin='TapService.id==TapIdAssociation.tap_service_id')
 
 
@@ -147,14 +148,47 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
         return self._make_tap_service_dict(tap_service_db)
 
+    def _rebuild_taas_id_allocation_range(self, context):
+        query = context.session.query(
+            TapIdAssociation).all()
+
+        allocate_taas_id_list = [_q.taas_id for _q in query]
+        first_taas_id = cfg.CONF.taas.vlan_range_start
+        # Include range end
+        last_taas_id = cfg.CONF.taas.vlan_range_end
+        all_taas_id_set = set(range(first_taas_id, last_taas_id))
+        vaild_taas_id_set = all_taas_id_set - set(allocate_taas_id_list)
+
+        for _id in vaild_taas_id_set:
+            # new taas id
+            context.session.add(TapIdAssociation(
+                taas_id=_id))
+
+    def _allocate_taas_id_with_tap_service_id(self, context, tap_service_id):
+        query = context.session.query(TapIdAssociation).filter_by(
+            tap_service_id=None).first()
+        if not query:
+            self._rebuild_taas_id_allocation_range(context)
+            # try again
+            query = context.session.query(TapIdAssociation).filter_by(
+                tap_service_id=None).first()
+
+        if query:
+            query.update({"tap_service_id": tap_service_id})
+            return query
+        # not found
+        raise taas.TapServiceLimitReached()
+
     def create_tap_id_association(self, context, tap_service_id):
         LOG.debug("create_tap_id_association() called")
         # create the TapIdAssociation object
         with context.session.begin(subtransactions=True):
-            tap_id_association_db = TapIdAssociation(
-                tap_service_id=tap_service_id
-                )
-            context.session.add(tap_id_association_db)
+            # allocate Taas id.
+            # if conflict happened, it will raise db.DBDuplicateEntry.
+            # this will be retry request again in neutron controller framework.
+            # so we just make sure TapIdAssociation field taas_id is unique
+            tap_id_association_db = self._allocate_taas_id_with_tap_service_id(
+                context, tap_service_id)
 
         return self._make_tap_id_association_dict(tap_id_association_db)
 
