@@ -23,9 +23,9 @@ from neutron_lib import constants
 from neutron_lib.db import model_base
 from neutron_lib.plugins import directory
 from neutron_taas.extensions import taas
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import uuidutils
-
 
 LOG = logging.getLogger(__name__)
 
@@ -69,12 +69,22 @@ class TapIdAssociation(model_base.BASEV2):
     tap_service_id = sa.Column(sa.String(36),
                                sa.ForeignKey("tap_services.id",
                                              ondelete='CASCADE'))
-    taas_id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    taas_id = sa.Column(sa.Integer, primary_key=True)
     tap_service = orm.relationship(
         TapService,
         backref=orm.backref("tap_service_id",
                             lazy="joined", cascade="delete"),
         primaryjoin='TapService.id==TapIdAssociation.tap_service_id')
+
+
+class TaasIdAllocationPool(model_base.BASEV2):
+
+    # Used to record could allocation Taas Id ranges
+    # First entry from the range will be allocated
+    # If first_taas_id large than last_taas_id will be deleted
+    __tablename__ = 'taas_id_allocation_pools'
+    first_taas_id = sa.Column(sa.Integer, primary_key=True)
+    last_taas_id = sa.Column(sa.Integer, primary_key=True)
 
 
 class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
@@ -147,13 +157,69 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
         return self._make_tap_service_dict(tap_service_db)
 
+    def _rebuild_taas_id_allocation_range(self, context):
+        # The Db update lock will block other threads
+        # 'UPDATE' the table
+        query = context.session.query(
+            TapIdAssociation).all().with_lockmode('update')
+
+        # Check if other api worker has rebuild the ranges
+        query_range = context.session.query(TaasIdAllocationPool).first()
+        if query_range:
+            return
+
+        allocate_taas_id_list = [_q.taas_id for _q in query]
+        allocate_taas_id_list.sort()
+        first_taas_id = cfg.CONF.taas.vlan_range_start
+        last_taas_id = cfg.CONF.taas.vlan_range_end
+
+        for _id in allocate_taas_id_list:
+            if first_taas_id == _id:
+                first_taas_id += 1
+            else:
+                # new taas id range
+                context.session.add(TaasIdAllocationPool(
+                    first_taas_id=first_taas_id,
+                    last_taas_id=(_id - 1)))
+                first_taas_id = _id + 1
+
+        if first_taas_id <= last_taas_id:
+            context.session.add(TaasIdAllocationPool(
+                first_taas_id=first_taas_id,
+                last_taas_id=last_taas_id))
+
+    def _allocate_taas_id(self, context):
+        query = context.session.query(TaasIdAllocationPool).first()
+        if not query:
+            self._rebuild_taas_id_allocation_range(context)
+            # try again
+            query = context.session.query(
+                TaasIdAllocationPool).first()
+
+        if query:
+            taas_id_range = query[0]
+            taas_id = taas_id_range.first_taas_id
+            taas_id_range.first_taas_id += 1
+            if taas_id_range.first_taas_id > taas_id_range.last_taas_id:
+                context.session.delete(taas_id_range)
+            return taas_id
+        # not found
+        raise taas.TapServiceLimitReached()
+
     def create_tap_id_association(self, context, tap_service_id):
         LOG.debug("create_tap_id_association() called")
         # create the TapIdAssociation object
         with context.session.begin(subtransactions=True):
+            # allocate Taas id.
+            # if conflict happened, it will raise db.DBDuplicateEntry.
+            # this will be retry request again in neutron controller framework.
+            # so we just make sure TapIdAssociation and TaasIdAllocationPool
+            # db entry is unique
+            taas_id = self._allocate_taas_id(context)
             tap_id_association_db = TapIdAssociation(
-                tap_service_id=tap_service_id
-                )
+                tap_service_id=tap_service_id,
+                taas_id=taas_id
+            )
             context.session.add(tap_id_association_db)
 
         return self._make_tap_id_association_dict(tap_id_association_db)
