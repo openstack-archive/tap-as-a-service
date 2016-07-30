@@ -17,7 +17,6 @@
 from neutron.common import exceptions as n_exc
 from neutron.common import rpc as n_rpc
 from neutron_taas.common import topics
-from neutron_taas.extensions import taas as taas_ex
 from neutron_taas.services.taas import service_drivers
 from neutron_taas.services.taas.service_drivers import taas_agent_api
 
@@ -52,8 +51,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                  tf['tap_service_id'])
         taas_id = (self.service_plugin.get_tap_id_association(
             context,
-            tap_service_id=ts['id'])['taas_id'] +
-            cfg.CONF.taas.vlan_range_start)
+            tap_service_id=ts['id']))['taas_id']
         return taas_id
 
     def create_tap_service_precommit(self, context):
@@ -71,14 +69,10 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         # Get taas id associated with the Tap Service
         ts = context.tap_service
         tap_id_association = context.tap_id_association
-        taas_vlan_id = (tap_id_association['taas_id'] +
-                        cfg.CONF.taas.vlan_range_start)
+        taas_vlan_id = tap_id_association['taas_id']
         port = self.service_plugin._get_port_details(context._plugin_context,
                                                      ts['port_id'])
         host = port['binding:host_id']
-
-        if taas_vlan_id > cfg.CONF.taas.vlan_range_end:
-            raise taas_ex.TapServiceLimitReached()
 
         rpc_msg = {'tap_service': ts,
                    'taas_id': taas_vlan_id,
@@ -99,8 +93,8 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         """
         ts = context.tap_service
         tap_id_association = context.tap_id_association
-        taas_vlan_id = (tap_id_association['taas_id'] +
-                        cfg.CONF.taas.vlan_range_start)
+        taas_vlan_id = tap_id_association['taas_id']
+
         try:
             port = self.service_plugin._get_port_details(
                 context._plugin_context,
