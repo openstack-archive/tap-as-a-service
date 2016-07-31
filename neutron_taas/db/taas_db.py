@@ -14,22 +14,30 @@
 # under the License.
 
 
+import sqlalchemy as sa
+from sqlalchemy import orm
+from sqlalchemy.orm import exc
+
+from neutron.api.v2 import attributes as attr
 from neutron.db import common_db_mixin as base_db
 from neutron.db import model_base
-from neutron.db import models_v2
 from neutron import manager
 from neutron_taas.extensions import taas
 from oslo_log import log as logging
 from oslo_utils import uuidutils
-import sqlalchemy as sa
-from sqlalchemy import orm
-from sqlalchemy.orm import exc
 
 
 LOG = logging.getLogger(__name__)
 
 
-class TapService(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class HasProjectNotNullable(model_base.HasProject):
+
+    project_id = sa.Column(sa.String(attr.TENANT_ID_MAX_LEN), index=True,
+                           nullable=False)
+
+
+class TapService(model_base.BASEV2, model_base.HasId,
+                 HasProjectNotNullable):
 
     # Represents a V2 TapService Object
     __tablename__ = 'tap_services'
@@ -38,7 +46,7 @@ class TapService(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     port_id = sa.Column(sa.String(36), nullable=False)
 
 
-class TapFlow(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class TapFlow(model_base.BASEV2, model_base.HasId, HasProjectNotNullable):
 
     # Represents a V2 TapFlow Object
     __tablename__ = 'tap_flows'
