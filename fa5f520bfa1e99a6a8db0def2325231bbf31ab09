@@ -1,0 +1,9 @@
+Code-Review+2: Soichi Shigeta <shigets@labs.fujitsu.com>
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Wed, 10 Aug 2016 06:27:40 +0000
+Reviewed-on: https://review.openstack.org/349302
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
