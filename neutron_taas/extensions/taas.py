@@ -21,6 +21,7 @@ from neutron.api.v2 import resource_helper
 from neutron.common import exceptions as qexception
 from neutron.services import service_base
 
+from neutron_taas._i18n import _
 from neutron_taas.common import constants
 
 from oslo_config import cfg
