@@ -18,8 +18,8 @@ import abc
 from neutron.api import extensions
 from neutron.api.v2 import attributes as attr
 from neutron.api.v2 import resource_helper
-from neutron.common import exceptions as qexception
 from neutron.services import service_base
+from neutron_lib import exceptions as qexception
 
 from neutron_taas.common import constants
 
