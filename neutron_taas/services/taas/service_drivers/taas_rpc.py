@@ -14,8 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from neutron.common import exceptions as n_exc
 from neutron.common import rpc as n_rpc
+from neutron_lib import exceptions as n_exc
 from neutron_taas.common import topics
 from neutron_taas.extensions import taas as taas_ex
 from neutron_taas.services.taas import service_drivers
