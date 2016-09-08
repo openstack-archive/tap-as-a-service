@@ -15,6 +15,8 @@
 
 
 from neutron.agent.common import config
+
+from neutron_taas._i18n import _
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
 
