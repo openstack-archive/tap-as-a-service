@@ -16,8 +16,8 @@
 
 from neutronclient.common import extension
 from neutronclient.common import utils
-from neutronclient.i18n import _
 from neutronclient.neutron import v2_0 as neutronv20
+from neutron_taas import _i18n as _
 
 
 def _add_updatable_args(parser):
