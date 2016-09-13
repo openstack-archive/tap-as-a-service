@@ -14,8 +14,8 @@
 #    under the License.
 #
 
+from neutron_taas._i18n import _
 from neutronclient.common import extension
-from neutronclient.i18n import _
 from neutronclient.neutron import v2_0 as neutronv20
 
 
