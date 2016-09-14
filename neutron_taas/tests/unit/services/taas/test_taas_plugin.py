@@ -52,7 +52,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self._plugin = taas_plugin.TaasPlugin()
         self._context = context.get_admin_context()
 
-        self._tenant_id = 'tenant-X'
+        self._project_id = self._tenant_id = 'tenant-X'
         self._network_id = uuidutils.generate_uuid()
         self._host_id = 'host-A'
         self._port_id = uuidutils.generate_uuid()
@@ -67,6 +67,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'name': 'MyTap',
             'description': 'This is my tap service',
             'port_id': self._port_id,
+            'project_id': self._project_id,
         }
         self._tap_flow = {
             'description': 'This is my tap flow',
@@ -74,6 +75,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'name': 'MyTapFlow',
             'source_port': self._port_id,
             'tenant_id': self._tenant_id,
+            'project_id': self._project_id,
         }
 
     @contextlib.contextmanager
