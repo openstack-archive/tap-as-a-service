@@ -25,8 +25,13 @@ revision = 'fddbdec8711a'
 down_revision = '04625466c6fa'
 
 from alembic import op
+from neutron.db import migration
 from neutron_lib import constants
 import sqlalchemy as sa
+
+
+# milestone identifier, used by neutron-db-manage
+neutron_milestone = [migration.NEWTON]
 
 
 def upgrade():
