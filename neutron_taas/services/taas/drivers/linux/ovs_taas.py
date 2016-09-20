@@ -293,10 +293,6 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
         ovs_port = self.int_br.get_vif_port_by_id(port['id'])
         ovs_port_id = ovs_port.ofport
 
-        # Get VLAN id for tap flow port
-        port_dict = self.int_br.get_port_tag_dict()
-        port_vlan_id = port_dict[ovs_port.port_name]
-
         # Get patch port ID
         patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
 
@@ -310,16 +306,39 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
 
         if direction == 'IN' or direction == 'BOTH':
             port_mac = tap_flow['port_mac']
+
+            #
+            # Note: The ingress side flow (for unicast traffic) should
+            #       include a check for the 'VLAN id of the Neutron
+            #       network the port belongs to' + 'MAC address of the
+            #       port', to comply with the requirement that port MAC
+            #       addresses are unique only within a Neutron network.
+            #       Unfortunately, at the moment there is no clean way
+            #       to implement such a check, given OVS's handling of 
+            #       VLAN tags and Neutron's use of the NORMAL action in
+            #       br-int.
+            #
+            #       We are therefore temporarily disabling the VLAN id
+            #       check until a mechanism is available to implement
+            #       it correctly. The {broad,multi}cast flow, which is
+            #       also dependent on the VLAN id, has been disabled
+            #       for the same reason.
+            #
+
+            # Get VLAN id for tap flow port
+            #port_dict = self.int_br.get_port_tag_dict()
+            #port_vlan_id = port_dict[ovs_port.port_name]
+
             self.int_br.add_flow(table=0,
                                  priority=20,
-                                 dl_vlan=port_vlan_id,
+                                 #dl_vlan=port_vlan_id,
                                  dl_dst=port_mac,
                                  actions="normal,mod_vlan_vid:%s,output:%s" %
                                  (str(taas_id), str(patch_int_tap_id)))
 
-            self._add_update_ingress_bcmc_flow(port_vlan_id,
-                                               taas_id,
-                                               patch_int_tap_id)
+            #self._add_update_ingress_bcmc_flow(port_vlan_id,
+            #                                   taas_id,
+            #                                   patch_int_tap_id)
 
         # Add flow(s) in br-tun
         for tunnel_type in ovs_consts.TUNNEL_NETWORK_TYPES:
@@ -350,10 +369,6 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
         ovs_port = self.int_br.get_vif_port_by_id(port['id'])
         ovs_port_id = ovs_port.ofport
 
-        # Get VLAN id for tap flow port
-        port_dict = self.int_br.get_port_tag_dict()
-        port_vlan_id = port_dict[ovs_port.port_name]
-
         # Get patch port ID
         patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
 
@@ -364,13 +379,23 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
 
         if direction == 'IN' or direction == 'BOTH':
             port_mac = tap_flow['port_mac']
+
+            #
+            # The VLAN id related checks have been temporarily disabled.
+            # Please see comment in create_tap_flow() for details.
+            #
+
+            # Get VLAN id for tap flow port
+            #port_dict = self.int_br.get_port_tag_dict()
+            #port_vlan_id = port_dict[ovs_port.port_name]
+
             self.int_br.delete_flows(table=0,
-                                     dl_vlan=port_vlan_id,
+                                     #dl_vlan=port_vlan_id,
                                      dl_dst=port_mac)
 
-            self._del_update_ingress_bcmc_flow(port_vlan_id,
-                                               taas_id,
-                                               patch_int_tap_id)
+            #self._del_update_ingress_bcmc_flow(port_vlan_id,
+            #                                   taas_id,
+            #                                   patch_int_tap_id)
 
         return
 
