@@ -1,5 +1,6 @@
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
+# Copyright (c) 2016 NEC Technologies India Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,8 +17,8 @@
 import abc
 
 from neutron.api import extensions
-from neutron.api.v2 import attributes as attr
 from neutron.api.v2 import resource_helper
+from neutron.quota import resource_registry
 from neutron.services import service_base
 from neutron_lib import exceptions as qexception
 
@@ -185,7 +186,9 @@ class Taas(extensions.ExtensionDescriptor):
         plural_mappings = resource_helper.build_plural_mappings(
             {}, RESOURCE_ATTRIBUTE_MAP)
 
-        attr.PLURALS.update(plural_mappings)
+        for key in RESOURCE_ATTRIBUTE_MAP.iterkeys():
+            resource_registry.register_resource_by_name(
+                plural_mappings[key])
 
         return resource_helper.build_resource_info(plural_mappings,
                                                    RESOURCE_ATTRIBUTE_MAP,
