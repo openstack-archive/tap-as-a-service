@@ -1,5 +1,6 @@
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
+# Copyright (c) 2016 NEC Technologies India Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,16 +18,20 @@ import abc
 
 from neutron_lib.api import extensions
 from neutron_lib import exceptions as qexception
-from neutron_lib.services import base as service_base
 
 from neutron.api.v2 import resource_helper
+from neutron.quota import resource_registry
+from neutron.services import service_base
 
 from neutron_taas._i18n import _
 from neutron_taas.common import constants
 
 from oslo_config import cfg
+from oslo_log import log as logging
 
 import six
+
+LOG = logging.getLogger(__name__)
 
 # TaaS exception handling classes
 
@@ -99,6 +104,7 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'validate': {'type:string': None},
                       'required_by_policy': True, 'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
+                 'validate': {'type:string': None},
                  'validate': {'type:string': None},
                  'is_visible': True, 'default': ''},
         'description': {'allow_post': True, 'allow_put': True,
@@ -182,6 +188,10 @@ class Taas(extensions.ExtensionDescriptor):
         plural_mappings = resource_helper.build_plural_mappings(
             {}, RESOURCE_ATTRIBUTE_MAP)
 
+        for key in RESOURCE_ATTRIBUTE_MAP.iterkeys():
+            resource_registry.register_resource_by_name(
+                plural_mappings[key])
+
         return resource_helper.build_resource_info(plural_mappings,
                                                    RESOURCE_ATTRIBUTE_MAP,
                                                    constants.TAAS,
@@ -206,10 +216,6 @@ class TaasPluginBase(service_base.ServicePluginBase):
 
     def get_plugin_description(self):
         return "Tap Service Plugin"
-
-    @classmethod
-    def get_plugin_type(cls):
-        return constants.TAAS
 
     @abc.abstractmethod
     def create_tap_service(self, context, tap_service):
