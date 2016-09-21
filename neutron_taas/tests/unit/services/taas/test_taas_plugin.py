@@ -246,3 +246,42 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             self.driver.configure_mock(**attr)
             with testtools.ExpectedException(DummyError):
                 self._plugin.delete_tap_flow(self._context, tf['id'])
+
+    def test_tap_quota_lower(self):
+        """Test quota using overridden value."""
+        cfg.CONF.set_override('quota_tap_service', 3, group='QUOTAS')
+        with self.tap_service(name='quota1'), \
+                self.tap_service(name='quota2'), \
+                self.tap_service(name='quota3'):
+            data = {'tap_service': {'name': 'quota4',
+                                    'id': None,
+                                    'tenant_id': self._tenant_id,
+                                    'port_id': None,
+                                    'status': False}}
+            req = self.new_create_request('tap_services', data, 'json')
+            res = req.get_response(self.ext_api)
+            self.assertIn('Quota exceeded', res.body.decode('utf-8'))
+            self.assertEqual(exc.HTTPConflict.code, res.status_int)
+
+    def test_tap_quota_default(self):
+        """Test quota using default value."""
+        with self.tap_service(name='quota1'), \
+                self.tap_service(name='quota2'), \
+                self.tap_service(name='quota3'), \
+                self.tap_service(name='quota4'), \
+                self.tap_service(name='quota5'), \
+                self.tap_service(name='quota6'), \
+                self.tap_service(name='quota7'), \
+                self.tap_service(name='quota8'), \
+                self.tap_service(name='quota9'), \
+                self.tap_service(name='quota10'):
+            data = {'tap_services': {'name': 'quota11',
+                                 'id': None,
+                                 'tenant_id': self._tenant_id,
+                                 'port_id': None,
+                                 'shared': False}}
+            req = self.new_create_request('tap_services', data, 'json')
+            res = req.get_response(self.ext_api)
+            self.assertIn('Quota exceeded', res.body.decode('utf-8'))
+            self.assertEqual(exc.HTTPConflict.code, res.status_int)
+
