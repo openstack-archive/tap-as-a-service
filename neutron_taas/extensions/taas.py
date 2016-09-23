@@ -91,6 +91,8 @@ RESOURCE_ATTRIBUTE_MAP = {
         'port_id': {'allow_post': True, 'allow_put': False,
                     'validate': {'type:uuid': None},
                     'is_visible': True},
+        'status': {'allow_post': False, 'allow_put': False,
+                   'is_visible': True}
     },
     'tap_flows': {
         'id': {'allow_post': False, 'allow_put': False,
@@ -113,7 +115,9 @@ RESOURCE_ATTRIBUTE_MAP = {
                         'required_by_policy': True, 'is_visible': True},
         'direction': {'allow_post': True, 'allow_put': False,
                       'validate': {'type:values': direction_enum},
-                      'is_visible': True}
+                      'is_visible': True},
+        'status': {'allow_post': False, 'allow_put': False,
+                   'is_visible': True}
     }
 }
 
