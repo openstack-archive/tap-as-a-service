@@ -1,5 +1,9 @@
 include AUTHORS
 include ChangeLog
+
+include neutron_taas/db/migration/alembic_migration/script.py.mako
+recursive-include neutron_taas/db/migration/alembic_migration/versions *
+
 exclude .gitignore
 exclude .gitreview
 
