@@ -83,3 +83,48 @@ if is_service_enabled taas_openvswitch_agent; then
         :
     fi
 fi
+
+### for taas-dashboard
+
+function neutron_taas_dashboard_install {
+    setup_develop $NEUTRON_TAAS_DASHBOARD_DIR
+}
+
+function neutron_taas_dashboard_configure {
+    cp $NEUTRON_TAAS_DASHBOARD_ENABLE_FILE \
+        $HORIZON_DIR/openstack_dashboard/local/enabled/
+
+    local local_settings=$HORIZON_DIR/openstack_dashboard/local/local_settings.py
+    _horizon_config_set $local_settings "" \
+        'HORIZON_CONFIG["customization_module"]' \
+        '"neutron_taas_dashboard.dashboards.project.tapservices.overrides"'
+}
+
+if is_service_enabled horizon && is_service_enabled taas && is_service_enabled neutron_taas_dashboard; then
+    if [[ "$1" == "stack" && "$2" == "install" ]]; then
+        # Perform installation of service source
+        echo_summary "Installing neutron-taas-dashboard"
+        neutron_taas_dashboard_install
+    elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
+        echo_summary "Configuring neutron-taas-dashboard"
+        neutron_taas_dashboard_configure
+    elif [[ "$1" == "stack" && "$2" == "extra" ]]; then
+        # Initialize and start the TaaS service
+        echo_summary "Initializing neutron-taas-dashboard"
+    fi
+fi
+
+if [[ "$1" == "unstack" ]]; then
+    # Shut down TaaS dashboard services
+    :
+fi
+
+if [[ "$1" == "clean" ]]; then
+    # Remove state and transient data
+    # Remember clean.sh first calls unstack.sh
+
+    # Remove taas-dashboard enabled file and pyc
+    # rm -f ${NEUTRON_TAAS_DASHBOARD_ENABLE_FILE}*
+    ENABLE_FILE="${NEUTRON_TAAS_DASHBOARD_ENABLE_FILE##*/}"
+    rm -f ${NEUTRON_TAAS_DASHBOARD_ENABLE_FILE}/$ENABLE_FILE*
+fi

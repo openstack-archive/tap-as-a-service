@@ -1,0 +1,35 @@
+{% extends "horizon/client_side/template.html" %}
+{% load horizon %}
+
+{% block id %}balloon_tapflow{% endblock %}
+
+{% block template %}
+{% jstemplate %}
+<div class="portTableHeader">
+  <div class="title">[[tapflow_label]]</div>
+  <div class="action">
+    <a class="add-interface btn btn-default btn-xs ajax-modal [[type]]" href="[[create_tapflow_url]]">
+      <span class="fa fa-plus"></span>
+      [[create_tapflow_label]]
+    </a>
+  </div>
+</div>
+<table class="detailInfoTable">
+  <caption></caption>
+  <tbody>
+    [[#tapflow]]
+    <tr>
+      <th>
+        <span title="[[name]]">
+          <a href="[[url]]">[[name]]</a>
+        </span>
+      </th>
+      <td class="delete">
+        <button class="delete-tapflow btn btn-danger btn-xs" data-tapservice-id="[[tap_service_id]]" data-tapflow-id="[[id]]">[[delete_tapflow_label]]</button>
+      </td>
+    </tr>
+    [[/tapflow]]
+  </tbody>
+</table>
+{% endjstemplate %}
+{% endblock %}

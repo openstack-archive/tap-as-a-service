@@ -1,0 +1,13 @@
+{% load i18n %}
+{% include "project/network_topology/client_side/_balloon_tapservice.html" %}
+{% include "project/network_topology/client_side/_balloon_tapflow.html" %}
+
+<div class="launchButtons pull-right">
+  {% if create_tapservice_allowed %}
+    <a href="{% url 'horizon:project:network_topology:createtapservice' %}" 
+       id="Tapservices__action_create" class="btn btn-default ajax-modal">
+      <span class="fa fa-plus"></span> 
+      {% trans "Create Tap Service"%}
+    </a>
+  {% endif %}
+</div>

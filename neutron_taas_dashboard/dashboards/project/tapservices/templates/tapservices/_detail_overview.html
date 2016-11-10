@@ -1,0 +1,17 @@
+{% load i18n sizeformat %}
+
+<h3>{% trans "Tap Service Overview" %}</h3>
+
+<div class="info detail">
+  <dl class="dl-horizontal">
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ tap_service.name|default:_("None") }}</dd>
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ tap_service.id|default:_("None") }}</dd>
+    <dt>{% trans "Project ID" %}</dt>
+    <dd>{{ tap_service.tenant_id|default:_("-") }}</dd>
+    {% url 'horizon:project:networks:ports:detail' tap_service.port_id as port_url %}
+    <dt>{% trans "Port ID" %}</dt>
+    <dd><a href="{{ port_url }}">{{ tap_service.port_id|default:_("None") }}</a></dd>
+  </dl>
+</div>

@@ -1,0 +1,7 @@
+{% load i18n sizeformat %}
+
+{% include "project/instances/_detail_overview.html" %}
+
+{% if is_taas %}
+  {{ table.render }}
+{% endif %}

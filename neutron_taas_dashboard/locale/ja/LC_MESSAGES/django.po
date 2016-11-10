@@ -1,0 +1,135 @@
+msgid "Tap Service"
+msgstr "タップサービス"
+
+msgid "Tap Services"
+msgstr "タップサービス"
+
+msgid "Tap Service ID"
+msgstr "タップサービス ID"
+
+msgid "Tap service list can not be retrieved."
+msgstr "タップサービス一覧を取得できません。"
+
+msgid "Tap Service Details: {{ tap_service.name }}"
+msgstr "タップサービスの詳細: {{ tap_service.name }}"
+
+msgid "Tap Service Details"
+msgstr "タップサービスの詳細"
+
+msgid "Unable to retrieve details for tap service \"%s\"."
+msgstr "タップサービス \"%s\" の詳細を取得できません。"
+
+msgid "Create Tap Service"
+msgstr "タップサービスの生成"
+
+msgid "Tap Service Overview"
+msgstr "タップサービスの概要"
+
+msgid "Create a new tap service."
+msgstr "新しいタップサービスを生成できます。"
+
+msgid "Tap Service Name"
+msgstr "タップサービス名"
+
+msgid "Create tap service with this port"
+msgstr "このポートでタップサービスを作成します。"
+
+msgid "Select port for your tap service."
+msgstr "ポートを選択してください。"
+
+msgid "Created tap service \"%s\"."
+msgstr "タップサービス \"%s\" を作成しました。"
+
+msgid "Unable to create tap service \"%s\"."
+msgstr "タップサービス \"%s\" の作成に失敗しました。"
+
+msgid "Delete Tap Service"
+msgid_plural "Delete Tap Services"
+msgstr[0] "タップサービスの削除"
+
+msgid "Deleted Tap Service"
+msgid_plural "Deleted Tap Services"
+msgstr[0] "タップサービスを削除しました"
+
+msgid "Failed to delete tap service %s"
+msgstr "タップサービス %s の削除に失敗しました"
+
+msgid "Tap Flow"
+msgstr "タップフロー"
+
+msgid "Tap Flows"
+msgstr "タップフロー"
+
+msgid "Tap Flow Name"
+msgstr "タップフロー名"
+
+msgid "Tap flow list can not be retrieved."
+msgstr "タップフロー一覧を取得できません。"
+
+msgid "Tap Flow Details: {{ tap_flow.name }}"
+msgstr "タップフローの詳細: {{ tap_flow.name }}"
+
+msgid "Tap Flow Details"
+msgstr "タップフローの詳細"
+
+msgid "Unable to retrieve details for tap flow \"%s\"."
+msgstr "タップフロー \"%s\" の詳細を取得できません。"
+
+msgid "Both"
+msgstr "送受信"
+
+msgid "Create Tap Flow"
+msgstr "タップフローの設置"
+
+msgid "Create a new tap flow."
+msgstr "新しいタップフローを生成できます。"
+
+msgid "Whether to mirror the traffic leaving or ariving at the source port."
+msgstr "ソースポートにモニタするトラフィックの出力または入力を指定してください。"
+
+msgid "Select tap service for your tap flow."
+msgstr "タップサービスを選択してください。"
+
+msgid "Create tap flow with this tap service"
+msgstr "このタップサービスでタップフローを作成します。"
+
+msgid "Select port for your tap flow."
+msgstr "ポートを選択してください。"
+
+msgid "Create tap flow with this port"
+msgstr "このポートでタップフローを作成します。"
+
+msgid "Created tap flow \"%s\"."
+msgstr "タップフロー \"%s\" を作成しました。"
+
+msgid "Unable to create tap flow \"%s\"."
+msgstr "タップフロー \"%s\" の作成に失敗しました。"
+
+msgid "Delete Tap Flow"
+msgid_plural "Delete Tap Flows"
+msgstr[0] "タップフローの撤去"
+msgstr[1] "タップフローの撤去"
+
+msgid "Delete Tap Flows"
+msgid_plural "Delete Tap Flow"
+msgstr[0] "タップフローの撤去"
+msgstr[1] "タップフローの撤去"
+
+msgid "Deleted Tap Flow"
+msgid_plural "Deleted Tap Flows"
+msgstr[0] "タップフローを削除しました"
+
+msgid "Failed to delete tap flow %s"
+msgstr "タップフロー %s の削除に失敗しました"
+
+msgid "Select direction"
+msgstr "方向を選択してください"
+
+msgid "There are one or more tap services or tap flows still connected to the instance."
+msgstr "インスタンスにタップサービスまたはタップフローが設置されています。"
+
+msgid "Create Virtual Tap"
+msgstr "仮想タップの設置"
+
+msgid "Delete Virtual Tap"
+msgstr "仮想タップの撤去"

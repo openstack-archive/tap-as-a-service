@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Tap Flow Details"%}{% endblock %}
+
+{% block main %}
+<div id="row">
+  <div class="col-sm-12">
+    {% include "project/tapservices/tapflows/_detail_overview.html" %}
+    <hr>
+        <div id="tapflows">
+      {{ tap_flow.render }}
+    </div>
+  </div>
+</div>
+{% endblock %}
