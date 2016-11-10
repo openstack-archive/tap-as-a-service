@@ -4,3 +4,7 @@ TAAS_PLUGIN_PATH=$ABSOLUTE_PATH/..
 TAAS_PLUGIN_CONF_FILE="/etc/neutron/taas_plugin.ini"
 TAAS_OVS_AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-taas-openvswitch-agent"
 TAAS_OVS_AGENT_CONF_FILE="/etc/neutron/taas.ini"
+
+# for taas-dashboard
+NEUTRON_TAAS_DASHBOARD_DIR=$DEST/tap-as-a-service
+NEUTRON_TAAS_DASHBOARD_ENABLE_FILE=$NEUTRON_TAAS_DASHBOARD_DIR/neutron_taas_dashboard/enabled/_1480_project_tapservices_panel.py

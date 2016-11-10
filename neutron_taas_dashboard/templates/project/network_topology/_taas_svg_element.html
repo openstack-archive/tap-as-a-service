@@ -1,0 +1,159 @@
+{% load i18n %}
+<style type="text/css">
+svg#topology_canvas .instance_small .frame,
+svg#topology_canvas .instance_small_tapservice .frame,
+svg#topology_canvas .instance_small_tapflow .frame,
+svg#topology_canvas .router_small .frame {
+  fill: url(#device_small_bg);
+  stroke: #333;
+  stroke-width: 3;
+}
+svg#topology_canvas .instance_small .port_text,
+svg#topology_canvas .instance_small_tapservice .port_text,
+svg#topology_canvas .instance_small_tapflow .port_text,
+svg#topology_canvas .router_small .port_text {
+  display: none;
+}
+svg#topology_canvas .instance_small_tapservice .instance_bg {
+  fill: #0ff;
+}
+svg#topology_canvas .instance_small_tapflow .instance_bg {
+  fill: #f55;
+}
+svg#topology_canvas .instance_normal_tapservice .frame {
+  fill: #cff;
+  stroke: #333;
+  stroke-width: 4;
+}
+svg#topology_canvas .instance_normal_tapflow .frame {
+  fill: #fbd;
+  stroke: #333;
+  stroke-width: 4;
+}
+svg#topology_canvas .instance_normal_tapservice .icon_bg {
+  fill: #0ff;
+  stroke: #333;
+  stroke-width: 4;
+}
+svg#topology_canvas .instance_normal_tapflow .icon_bg {
+  fill: #f55;
+  stroke: #333;
+  stroke-width: 4;
+}
+svg#topology_canvas .router_normal .texts_bg,
+svg#topology_canvas .instance_normal_tapservice .texts_bg,
+svg#topology_canvas .instance_normal_tapflow .texts_bg,
+svg#topology_canvas .instance_normal .texts_bg {
+  fill: url('#device_normal_bg');
+}
+svg#topology_canvas .router_normal .texts .name,
+svg#topology_canvas .instance_normal_tapservice .texts .name,
+svg#topology_canvas .instance_normal_tapflow .texts .name,
+svg#topology_canvas .instance_normal .texts .name {
+  text-anchor: middle;
+  fill: #333;
+}
+svg#topology_canvas .router_normal .texts .type,
+svg#topology_canvas .instance_normal_tapservice .texts .type,
+svg#topology_canvas .instance_normal_tapflow .texts .type,
+svg#topology_canvas .instance_normal .texts .type {
+  text-anchor: middle;
+  fill: #fff;
+}
+svg#topology_canvas .router_normal .instance_bg,
+svg#topology_canvas .instance_normal_tapservice .instance_bg,
+svg#topology_canvas .instance_normal_tapflow .instance_bg,
+svg#topology_canvas .instance_normal .instance_bg {
+  fill: #333;
+}
+svg#topology_canvas g.loading .instance_small .frame,
+svg#topology_canvas g.loading .instance_small_tapservice .frame,
+svg#topology_canvas g.loading .instance_small_tapflow .frame,
+svg#topology_canvas g.loading .router_small .frame {
+  stroke: #555;
+  fill: url(#device_small_bg_loading);
+}
+svg#topology_canvas g.loading .router_normal .frame,
+svg#topology_canvas g.loading .instance_normal_tapservice .frame,
+svg#topology_canvas g.loading .instance_normal_tapflow .frame,
+svg#topology_canvas g.loading .instance_normal .frame {
+  stroke: #555;
+}
+svg#topology_canvas g.loading .router_normal .name,
+svg#topology_canvas g.loading .instance_normal_tapservice .name,
+svg#topology_canvas g.loading .instance_normal_tapflow .name,
+svg#topology_canvas g.loading .instance_normal .name {
+  fill: #999;
+}
+svg#topology_canvas g.loading .router_normal .texts_bg,
+svg#topology_canvas g.loading .instance_normal_tapservice .texts_bg,
+svg#topology_canvas g.loading .instance_normal_tapflow .texts_bg,
+svg#topology_canvas g.loading .instance_normal .texts_bg {
+  fill: url(#device_normal_bg_loading);
+}
+svg#topology_canvas g.loading .router_normal .icon_bg,
+svg#topology_canvas g.loading .instance_normal_tapservice .icon_bg,
+svg#topology_canvas g.loading .instance_normal_tapflow .icon_bg,
+svg#topology_canvas g.loading .instance_normal .icon_bg {
+  stroke: #555;
+}
+</style>
+
+<svg id="topology_template" display="none">
+  <g class="instance_small_tapservice device_body">
+    <g class="ports" pointer-events="none"></g>
+    <rect rx="3" ry="3" width="20" height="20" class="frame"></rect>
+    <g transform="translate(5,3)" class="icon">
+      <rect class="instance_bg" width="10" height="13"></rect>
+      <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
+      <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
+      <circle class="active" cx="3" cy="10" r="1.3"></circle>
+    </g>
+  </g>
+  <g class="instance_small_tapflow device_body">
+    <g class="ports" pointer-events="none"></g>
+    <rect rx="3" ry="3" width="20" height="20" class="frame"></rect>
+    <g transform="translate(5,3)" class="icon">
+      <rect class="instance_bg" width="10" height="13"></rect>
+      <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
+      <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
+      <circle class="active" cx="3" cy="10" r="1.3"></circle>
+    </g>
+  </g>
+  <g class="instance_normal_tapservice device_body">
+    <g class="ports" pointer-events="none"></g>
+    <rect class="frame" x="0" y="0" rx="6" ry="6" width="90" height="50"></rect>
+    <g class="texts">
+      <rect class="texts_bg" x="1.5" y="32" width="87" height="17"></rect>
+      <text x="45" y="46" class="type">{% trans "Instance" %}</text>
+      <text x="45" y="22" class="name">instance</text>
+    </g>
+    <g class="icon" transform="translate(6,6)">
+      <circle class="icon_bg" cx="0" cy="0" r="12"></circle>
+      <g transform="translate(-5,-6.5)">
+        <rect class="instance_bg" width="10" height="13"></rect>
+        <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
+        <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
+        <circle class="active" cx="3" cy="10" r="1.3"></circle>
+      </g>
+    </g>
+  </g>
+  <g class="instance_normal_tapflow device_body">
+    <g class="ports" pointer-events="none"></g>
+    <rect class="frame" x="0" y="0" rx="6" ry="6" width="90" height="50"></rect>
+    <g class="texts">
+      <rect class="texts_bg" x="1.5" y="32" width="87" height="17"></rect>
+      <text x="45" y="46" class="type">{% trans "Instance" %}</text>
+      <text x="45" y="22" class="name">instance</text>
+    </g>
+    <g class="icon" transform="translate(6,6)">
+      <circle class="icon_bg" cx="0" cy="0" r="12"></circle>
+      <g transform="translate(-5,-6.5)">
+        <rect class="instance_bg" width="10" height="13"></rect>
+        <rect x="2" y="1" fill="#FFFFFF" width="6" height="2"></rect>
+        <rect x="2" y="4" fill="#FFFFFF" width="6" height="2"></rect>
+        <circle class="active" cx="3" cy="10" r="1.3"></circle>
+      </g>
+    </g>
+  </g>
+</svg>
