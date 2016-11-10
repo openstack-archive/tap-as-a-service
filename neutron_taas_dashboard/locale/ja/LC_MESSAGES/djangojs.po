@@ -1,0 +1,14 @@
+msgid "Delete Tap Service"
+msgstr "タップサービスの削除"
+
+msgid "Create Tap Flow"
+msgstr "タップフローの設置"
+
+msgid "Delete Tap Flow"
+msgstr "タップフローの撤去"
+
+msgid "Tap Flow"
+msgstr "タップフロー"
+
+msgid "Tap Service"
+msgstr "タップサービス"

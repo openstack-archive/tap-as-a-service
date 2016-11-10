@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Network Topology" %}{% endblock %}
+
+{% block main %}
+
+<noscript>
+{% trans "This panel needs JavaScript support." %}
+</noscript>
+
+{% include "project/network_topology/client_side/_balloon_container.html" %}
+{% include "project/network_topology/client_side/_balloon_device.html" %}
+{% include "project/network_topology/client_side/_balloon_port.html" %}
+{% include "project/network_topology/client_side/_balloon_net.html" %}
+{% include "project/network_topology/client_side/_balloon_instance.html" %}
+
+<!--adding for taas_dashbaord-->
+{% include "project/network_topology/_taas_actions_list.html" %}
+
+{% include "project/network_topology/_actions_list.html" %}
+<div class="row">
+  <div class="col-sm-12">
+    {{ tab_group.render }}
+  </div>
+</div>
+
+<span data-networktopology="{% url 'horizon:project:network_topology:json' %}" id="networktopology"></span>
+<div id="topologyMessages"></div>
+
+<script type="text/javascript">
+  if (typeof horizon.network_topology !== 'undefined') {
+    horizon.network_topology.init();
+  } else {
+    addHorizonLoadEvent(function () {
+      horizon.networktopologycommon.init();
+      horizon.flat_network_topology.init();
+      horizon.network_topology.init();
+    });
+  }
+</script>
+{% endblock %}

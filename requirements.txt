@@ -5,3 +5,4 @@
 pbr>=1.8 # Apache-2.0
 Babel>=2.3.4 # BSD
 -e git://git.openstack.org/openstack/neutron.git@master#egg=neutron
+-e git://git.openstack.org/openstack/horizon.git@master#egg=horizon

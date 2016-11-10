@@ -1,0 +1,30 @@
+{% extends "horizon/client_side/template.html" %}
+{% load horizon %}
+
+{% block id %}balloon_tapservice{% endblock %}
+
+{% block template %}
+{% jstemplate %}
+<div class="portTableHeader">
+  <div class="title">[[tapservice_label]]</div>
+</div>
+<table class="detailInfoTable">
+  <caption></caption>
+  <tbody>
+    [[#tapservice]]
+    <tr>
+      <th>
+        <span title="[[name]]">
+          <a href="[[url]]">[[name]]</a>
+        </span>
+      </th>
+      <td class="delete">
+        <button class="delete-tapservice btn btn-danger btn-xs"
+          data-tapservice-id="[[id]]">[[delete_tapservice_label]]</button>
+      </td>
+    </tr>
+    [[/tapservice]]
+  </tbody>
+</table>
+{% endjstemplate %}
+{% endblock %}
