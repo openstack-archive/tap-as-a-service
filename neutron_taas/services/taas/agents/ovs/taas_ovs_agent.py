@@ -14,7 +14,7 @@
 # under the License.
 
 
-from neutron.agent.common import config
+from neutron_lib.conf import agent
 
 from neutron_taas._i18n import _
 from neutron_taas.common import topics
@@ -45,7 +45,7 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         taas_driver_class_path = cfg.CONF.taas.driver
         self.taas_enabled = cfg.CONF.taas.enabled
 
-        self.root_helper = config.get_root_helper(conf)
+        self.root_helper = agent.get_root_helper(conf)
 
         try:
             self.taas_driver = importutils.import_object(
