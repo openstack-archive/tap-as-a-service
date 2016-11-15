@@ -21,10 +21,10 @@ eventlet.monkey_patch()
 from oslo_config import cfg
 from oslo_service import service
 
-from neutron.agent.common import config
 from neutron.common import config as common_config
 from neutron.common import rpc as n_rpc
 
+from neutron_lib.conf import agent
 from neutron_taas._i18n import _
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
@@ -53,9 +53,9 @@ class TaaSOVSAgentService(n_rpc.Service):
 def main():
     # Load the configuration parameters.
     cfg.CONF.register_opts(OPTS)
-    config.register_root_helper(cfg.CONF)
+    agent.register_root_helper(cfg.CONF)
     common_config.init(sys.argv[1:])
-    config.setup_logging()
+    agent.setup_logging()
 
     # Set up RPC
     mgr = taas_ovs_agent.TaasOvsAgentRpcCallback(cfg.CONF)
