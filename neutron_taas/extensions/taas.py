@@ -15,11 +15,11 @@
 
 import abc
 
-from neutron.api import extensions
 from neutron.api.v2 import attributes as attr
 from neutron.api.v2 import resource_helper
 from neutron.services import service_base
 from neutron_lib import exceptions as qexception
+from neutron_lib.api import extensions
 
 from neutron_taas._i18n import _
 from neutron_taas.common import constants
