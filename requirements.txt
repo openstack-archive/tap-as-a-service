@@ -5,3 +5,5 @@
 pbr>=1.6 # Apache-2.0
 Babel>=2.3.4 # BSD
 -e git://git.openstack.org/openstack/neutron.git@master#egg=neutron
+os-client-config>=1.22.0 # Apache-2.0
+python-openstackclient>=3.3.0 # Apache-2.0
