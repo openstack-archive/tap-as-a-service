@@ -17,6 +17,8 @@ Contents:
    contributing
    specs/index
    presentations
+   usage/osc/tapflow
+   usage/osc/tapservice
 
 Indices and tables
 ==================
