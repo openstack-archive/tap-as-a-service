@@ -13,20 +13,32 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from oslo_config import cfg
 
 from neutron.agent.common import ovs_lib
 from neutron.agent.linux import utils
 # from neutron.plugins.openvswitch.common import constants as ovs_consts
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
-from neutron_taas.services.taas.drivers import taas_base
+from neutron_taas.services.taas.agents.extension import taas as taas_base
 from oslo_log import log as logging
 import ovs_constants as taas_ovs_consts
 import ovs_utils as taas_ovs_utils
+from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
 
 LOG = logging.getLogger(__name__)
 
 TaaS_DRIVER_NAME = 'Taas OVS driver'
+
+# Confirm if this is correct REEDIP
+OPTS = [
+    cfg.IntOpt(
+        'taas_agent_periodic_interval',
+        default=5,
+        help=_('Seconds between periodic task runs')
+    )
+]
+cfg.CONF.register_opts(OPTS)
 
 
 class OVSBridge_tap_extension(ovs_lib.OVSBridge):
@@ -34,12 +46,15 @@ class OVSBridge_tap_extension(ovs_lib.OVSBridge):
         super(OVSBridge_tap_extension, self).__init__(br_name)
 
 
-class OvsTaasDriver(taas_base.TaasDriverBase):
+class OvsTaasDriver(taas_base.TaasAgentDriver):
     def __init__(self, root_helper):
+        super(OvsTaasDriver, self).__init__()
         LOG.debug("Initializing Taas OVS Driver")
-
+        self.agent_api = None
         self.root_helper = root_helper
+        self.mgr = taas_ovs_agent.TaasOvsAgentRpcCallback(cfg.CONF)
 
+    def initialize(self):
         self.int_br = OVSBridge_tap_extension('br-int', self.root_helper)
         self.tun_br = OVSBridge_tap_extension('br-tun', self.root_helper)
         self.tap_br = OVSBridge_tap_extension('br-tap', self.root_helper)
@@ -184,6 +199,9 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
                                  taas_ovs_consts.TAAS_SEND_UCAST))
 
         return
+
+    def consume_api(self, agent_api):
+        self.agent_api = agent_api
 
     def create_tap_service(self, tap_service):
         taas_id = tap_service['taas_id']

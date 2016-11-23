@@ -29,7 +29,7 @@ from neutron_taas._i18n import _
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
 
-
+#Confirm if this is properly migrated REEDIP
 OPTS = [
     cfg.IntOpt(
         'taas_agent_periodic_interval',
@@ -64,6 +64,7 @@ def main():
     conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
     conn.consume_in_threads()
 
+# Migration of this section is pending REEDIP
     svc = TaaSOVSAgentService(
         host=cfg.CONF.host,
         topic=topics.TAAS_PLUGIN,

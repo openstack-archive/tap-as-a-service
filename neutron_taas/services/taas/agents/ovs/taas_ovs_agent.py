@@ -18,7 +18,7 @@ from neutron.agent.common import config
 
 from neutron_taas._i18n import _
 from neutron_taas.common import topics
-from neutron_taas.services.taas.agents import taas_agent_api as api
+from neutron_taas.services.taas.agents.extensions import taas
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -27,7 +27,7 @@ from oslo_utils import importutils
 LOG = logging.getLogger(__name__)
 
 
-class TaasOvsPluginApi(api.TaasPluginApiMixin):
+class TaasOvsPluginApi(taas.TaasPluginApiMixin):
     # Currently there are not any APIs from the the agent towards plugin
 
     def __init__(self, topic, host):
@@ -35,7 +35,7 @@ class TaasOvsPluginApi(api.TaasPluginApiMixin):
         return
 
 
-class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
+class TaasOvsAgentRpcCallback(taas.TaasAgentRpcCallbackMixin):
 
     def __init__(self, conf):
 
