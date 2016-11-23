@@ -19,7 +19,7 @@ from neutron.agent.linux import utils
 # from neutron.plugins.openvswitch.common import constants as ovs_consts
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
-from neutron_taas.services.taas.drivers import taas_base
+from neutron_taas.services.taas.agents.extension import taas as taas_base
 from oslo_log import log as logging
 import ovs_constants as taas_ovs_consts
 import ovs_utils as taas_ovs_utils
@@ -34,7 +34,7 @@ class OVSBridge_tap_extension(ovs_lib.OVSBridge):
         super(OVSBridge_tap_extension, self).__init__(br_name)
 
 
-class OvsTaasDriver(taas_base.TaasDriverBase):
+class OvsTaasDriver(taas_base.TaasAgentDriver):
     def __init__(self, root_helper):
         LOG.debug("Initializing Taas OVS Driver")
 

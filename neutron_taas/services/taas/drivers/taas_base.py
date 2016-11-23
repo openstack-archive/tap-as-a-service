@@ -18,20 +18,15 @@ import abc
 import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class TaasDriverBase(object):
-    @abc.abstractmethod
+class TaasDriverBase():
     def create_tap_service(self, tap_service):
         pass
 
-    @abc.abstractmethod
     def delete_tap_service(self, tap_service):
         pass
 
-    @abc.abstractmethod
     def create_tap_flow(self, tap_flow):
         pass
 
-    @abc.abstractmethod
     def delete_tap_flow(self, tap_flow):
         pass
