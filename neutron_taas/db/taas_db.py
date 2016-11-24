@@ -19,9 +19,9 @@ from sqlalchemy import orm
 from sqlalchemy.orm import exc
 
 from neutron.db import common_db_mixin as base_db
-from neutron import manager
 from neutron_lib import constants
 from neutron_lib.db import model_base
+from neutron_lib.plugins import directory
 from neutron_taas.extensions import taas
 from oslo_log import log as logging
 from oslo_utils import uuidutils
@@ -80,7 +80,7 @@ class TapIdAssociation(model_base.BASEV2):
 class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
     def _core_plugin(self):
-        return manager.NeutronManager.get_plugin()
+        return directory.get_plugin()
 
     def _get_tap_service(self, context, id):
         try:
