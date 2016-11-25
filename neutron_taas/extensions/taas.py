@@ -16,7 +16,6 @@
 import abc
 
 from neutron.api import extensions
-from neutron.api.v2 import attributes as attr
 from neutron.api.v2 import resource_helper
 from neutron.services import service_base
 from neutron_lib import exceptions as qexception
@@ -184,8 +183,6 @@ class Taas(extensions.ExtensionDescriptor):
         """Returns Ext Resources."""
         plural_mappings = resource_helper.build_plural_mappings(
             {}, RESOURCE_ATTRIBUTE_MAP)
-
-        attr.PLURALS.update(plural_mappings)
 
         return resource_helper.build_resource_info(plural_mappings,
                                                    RESOURCE_ATTRIBUTE_MAP,
