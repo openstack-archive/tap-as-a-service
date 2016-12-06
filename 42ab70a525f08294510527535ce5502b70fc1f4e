@@ -1,0 +1,10 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Code-Review+1: garyk <gkotton@vmware.com>
+Code-Review+1: Adit Sarfaty <asarfaty@vmware.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 06 Dec 2016 07:29:31 +0000
+Reviewed-on: https://review.openstack.org/398143
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
