@@ -1,0 +1,10 @@
+Code-Review+1: Lv Jiawei <zhangoic@163.com>
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Code-Review+2: Anil Rao <arao012@gmail.com>
+Workflow+1: Anil Rao <arao012@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 06 Dec 2016 19:37:12 +0000
+Reviewed-on: https://review.openstack.org/383969
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
