@@ -14,6 +14,7 @@
 #    under the License.
 
 from tempest import config
+from tempest.lib import decorators
 from tempest import test
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
@@ -30,7 +31,7 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
             msg = "TaaS Extension not enabled."
             raise cls.skipException(msg)
 
-    @test.idempotent_id('b993c14e-797a-4c91-b4da-8cb1a450aa2f')
+    @decorators.idempotent_id('b993c14e-797a-4c91-b4da-8cb1a450aa2f')
     def test_create_tap_service_and_flow(self):
         network = self.create_network()
         port = self.create_port(network)
@@ -38,7 +39,7 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=port['id'])
 
-    @test.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
+    @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
     def test_delete_tap_service_after_delete_port(self):
         network = self.create_network()
         port = self.create_port(network)

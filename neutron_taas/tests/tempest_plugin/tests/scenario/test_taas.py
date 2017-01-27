@@ -14,6 +14,7 @@
 #    under the License.
 
 from tempest import config
+from tempest.lib import decorators
 from tempest import test
 
 from neutron_taas.tests.tempest_plugin.tests.scenario import base
@@ -31,6 +32,6 @@ class TestTaaS(base.TaaSScenarioTest):
                 msg = "%s Extension not enabled." % ext
                 raise cls.skipException(msg)
 
-    @test.idempotent_id('40903cbd-0e3c-464d-b311-dc77d3894e65')
+    @decorators.idempotent_id('40903cbd-0e3c-464d-b311-dc77d3894e65')
     def test_dummy(self):
         pass
