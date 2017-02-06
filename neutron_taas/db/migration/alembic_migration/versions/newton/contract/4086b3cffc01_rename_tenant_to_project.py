@@ -35,7 +35,7 @@ from neutron.db import migration
 _INSPECTOR = None
 
 # milestone identifier, used by neutron-db-manage
-neutron_milestone = [migration.NEWTON]
+neutron_milestone = [migration.NEWTON, migration.OCATA]
 
 
 def get_inspector():
