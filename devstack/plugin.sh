@@ -27,6 +27,7 @@ function configure_taas_plugin {
         _create_neutron_conf_dir
     fi
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
+    neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
     _neutron_service_plugin_class_add taas
 }
 
