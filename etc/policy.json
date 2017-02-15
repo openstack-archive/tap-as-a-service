@@ -1,0 +1,21 @@
+{
+    "context_is_admin":  "role:admin",
+    "owner": "tenant_id:%(tenant_id)s",
+    "admin_or_owner": "rule:context_is_admin or rule:owner",
+    "context_is_advsvc":  "role:advsvc",
+    "admin_or_network_owner": "rule:context_is_admin or tenant_id:%(network:tenant_id)s",
+    "admin_owner_or_network_owner": "rule:owner or rule:admin_or_network_owner",
+    "admin_only": "rule:context_is_admin",
+    "regular_user": "",
+    "default": "rule:admin_or_owner",
+
+    "create_tap_service": "",
+    "delete_tap_service": "rule:owner",
+    "get_tap_service": "",
+    "update_tap_service": "rule:owner",
+
+    "create_tap_flow": "",
+    "get_tap_flow": "rule:admin_or_owner",
+    "update_tap_flow": "",
+    "delete_tap_flow": "rule:owner",
+}
