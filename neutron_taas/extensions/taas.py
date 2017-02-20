@@ -25,11 +25,8 @@ from neutron_taas._i18n import _
 from neutron_taas.common import constants
 
 from oslo_config import cfg
-from oslo_log import log as logging
 
 import six
-
-LOG = logging.getLogger(__name__)
 
 # TaaS exception handling classes
 

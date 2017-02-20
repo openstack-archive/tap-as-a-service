@@ -17,9 +17,6 @@ from oslo_config import cfg
 import oslo_messaging as messaging
 
 from neutron.common import rpc as n_rpc
-from oslo_log import log as logging
-
-LOG = logging.getLogger(__name__)
 
 TaasOpts = [
     cfg.StrOpt(
