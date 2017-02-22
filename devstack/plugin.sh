@@ -28,7 +28,7 @@ function configure_taas_plugin {
     fi
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
     neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
-    _neutron_service_plugin_class_add taas
+    neutron_service_plugin_class_add taas
 }
 
 function configure_taas_openvswitch_agent {
