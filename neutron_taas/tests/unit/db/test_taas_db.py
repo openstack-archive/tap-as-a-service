@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron import context
 from neutron.tests.unit import testlib_api
 
+from neutron_lib import context
 from oslo_utils import importutils
 from oslo_utils import uuidutils
 

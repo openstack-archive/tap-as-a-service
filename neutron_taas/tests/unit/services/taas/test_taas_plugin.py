@@ -18,11 +18,11 @@ import contextlib
 import mock
 import testtools
 
+from neutron_lib import context
 from oslo_utils import uuidutils
 
 import neutron.common.rpc as n_rpc
 import neutron.common.utils as n_utils
-from neutron import context
 from neutron.tests.unit import testlib_api
 
 import neutron_taas.db.taas_db  # noqa
