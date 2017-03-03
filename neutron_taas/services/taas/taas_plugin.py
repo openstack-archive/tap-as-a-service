@@ -16,8 +16,8 @@
 
 from neutron.db import servicetype_db as st_db
 from neutron.services import provider_configuration as pconf
-from neutron.services import service_base
 from neutron_lib import exceptions as n_exc
+from neutron_lib.services import base as service_base
 
 from neutron_taas.common import constants
 from neutron_taas.db import taas_db
