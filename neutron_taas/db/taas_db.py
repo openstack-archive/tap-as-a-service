@@ -187,6 +187,13 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
         if not count:
             raise taas.TapServiceNotFound(tap_id=id)
 
+    def delete_tap_id_association(self, context, tap_service_id):
+        LOG.debug("Delete_tap_id_association() called")
+        # Delete the TapIdAssociation entry
+        if not context.session.query(TapIdAssociation).filter_by(
+            tap_service_id=tap_service_id).delete():
+            raise taas.TapServiceNotFound(tap_id=id)
+
     def delete_tap_flow(self, context, id):
         LOG.debug("delete_tap_flow() called")
 
