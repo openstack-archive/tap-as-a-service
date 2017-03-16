@@ -109,6 +109,8 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'taas_id': taas_vlan_id,
                    'port': port}
 
+        context._plugin.delete_tap_id_association(
+            context._plugin_context, taas_vlan_id)
         self.agent_rpc.delete_tap_service(context._plugin_context,
                                           rpc_msg, host)
         return
