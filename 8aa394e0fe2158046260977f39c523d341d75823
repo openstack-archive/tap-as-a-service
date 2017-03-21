@@ -1,0 +1,16 @@
+Code-Review+1: Kevin Benton <kevin@benton.pub>
+Code-Review+1: Igor Duarte Cardoso <igor.duarte.cardoso@intel.com>
+Code-Review+1: Bernard Cafarelli <bcafarel@redhat.com>
+Code-Review+1: Anna Khmelnitsky <akhmelnitsky@vmware.com>
+Code-Review+1: Abhishek Raut <rauta@vmware.com>
+Code-Review+2: Anil Rao <arao012@gmail.com>
+Code-Review+1: Dariusz Smigiel <smigiel.dariusz@gmail.com>
+Code-Review+1: Manjeet Singh Bhatia <manjeet.s.bhatia@intel.com>
+Code-Review+2: Soichi Shigeta <shigets@labs.fujitsu.com>
+Workflow+1: Soichi Shigeta <shigets@labs.fujitsu.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 21 Mar 2017 00:35:48 +0000
+Reviewed-on: https://review.openstack.org/447277
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
