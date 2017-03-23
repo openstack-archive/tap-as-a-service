@@ -12,12 +12,3 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-import gettext
-import six
-
-
-if six.PY2:
-    gettext.install('neutron', unicode=1)
-else:
-    gettext.install('neutron')
