@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron_taas._i18n import _
 from oslo_config import cfg
 import oslo_messaging as messaging
 
