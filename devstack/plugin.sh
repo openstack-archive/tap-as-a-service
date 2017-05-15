@@ -42,7 +42,7 @@ function configure_taas_openvswitch_agent {
 }
 
 function start_taas_openvswitch_agent {
-    run_process taas_openvswitch_agent "python $TAAS_OVS_AGENT_BINARY --config-file $NEUTRON_CONF --config-file $TAAS_OVS_AGENT_CONF_FILE"
+    run_process taas_openvswitch_agent "$TAAS_OVS_AGENT_BINARY --config-file $NEUTRON_CONF --config-file $TAAS_OVS_AGENT_CONF_FILE"
 }
 
 if is_service_enabled taas; then
