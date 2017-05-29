@@ -1,0 +1,11 @@
+Code-Review+1: Andrea Frittoli <andrea.frittoli@gmail.com>
+Code-Review+1: Masayuki Igawa <masayuki@igawa.me>
+Code-Review+1: Ken'ichi Ohmichi <ken1ohmichi@gmail.com>
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 29 May 2017 06:54:41 +0000
+Reviewed-on: https://review.openstack.org/439238
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
