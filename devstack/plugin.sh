@@ -81,6 +81,6 @@ if is_service_enabled taas_openvswitch_agent; then
             start_taas_openvswitch_agent
         fi
     elif [[ "$1" == "unstack" ]]; then
-        :
+        stop_process taas_openvswitch_agent
     fi
 fi
