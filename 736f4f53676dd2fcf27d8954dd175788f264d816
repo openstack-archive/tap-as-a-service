@@ -1,0 +1,8 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 03 Jul 2017 04:59:08 +0000
+Reviewed-on: https://review.openstack.org/468786
+Project: openstack/tap-as-a-service
+Branch: refs/heads/stable/newton
