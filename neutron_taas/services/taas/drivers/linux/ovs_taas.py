@@ -16,10 +16,12 @@
 
 from neutron.agent.common import ovs_lib
 from neutron.agent.linux import utils
+from neutron.conf.agent import common
 # from neutron.plugins.openvswitch.common import constants as ovs_consts
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
-from neutron_taas.services.taas.drivers import taas_base
+from neutron_taas.services.taas.agents.extensions import taas as taas_base
+from oslo_config import cfg
 from oslo_log import log as logging
 import ovs_constants as taas_ovs_consts
 import ovs_utils as taas_ovs_utils
@@ -34,14 +36,16 @@ class OVSBridge_tap_extension(ovs_lib.OVSBridge):
         super(OVSBridge_tap_extension, self).__init__(br_name)
 
 
-class OvsTaasDriver(taas_base.TaasDriverBase):
-    def __init__(self, root_helper):
+class OvsTaasDriver(taas_base.TaasAgentDriver):
+    def __init__(self):
+        super(OvsTaasDriver, self).__init__()
         LOG.debug("Initializing Taas OVS Driver")
+        self.agent_api = None
+        self.root_helper = common.get_root_helper(cfg.CONF)
 
-        self.root_helper = root_helper
-
-        self.int_br = OVSBridge_tap_extension('br-int', self.root_helper)
-        self.tun_br = OVSBridge_tap_extension('br-tun', self.root_helper)
+    def initialize(self):
+        self.int_br = self.agent_api.request_int_br()
+        self.tun_br = self.agent_api.request_tun_br()
         self.tap_br = OVSBridge_tap_extension('br-tap', self.root_helper)
 
         # Prepare OVS bridges for TaaS
@@ -184,6 +188,9 @@ class OvsTaasDriver(taas_base.TaasDriverBase):
                                  taas_ovs_consts.TAAS_SEND_UCAST))
 
         return
+
+    def consume_api(self, agent_api):
+        self.agent_api = agent_api
 
     def create_tap_service(self, tap_service):
         taas_id = tap_service['taas_id']
