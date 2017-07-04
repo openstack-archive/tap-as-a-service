@@ -50,6 +50,14 @@ class TaasAgentRpcCallbackMixin(object):
     def __init__(self):
         super(TaasAgentRpcCallbackMixin, self).__init__()
 
+    def consume_api(self, agent_api):
+        """Receive neutron agent API object
+
+        Allows an extension to gain access to resources internal to the
+        neutron agent and otherwise unavailable to the extension.
+        """
+        self.agent_api = agent_api
+
     def create_tap_service(self, context, tap_service, host):
         """Handle RPC cast from plugin to create a tap service."""
         pass

@@ -15,6 +15,9 @@
 # under the License.
 
 from neutron.common import rpc as n_rpc
+from neutron.common import topics
+
+from neutron_taas.common import topics as taas_topics
 
 from oslo_log import log as logging
 import oslo_messaging as messaging
@@ -35,6 +38,7 @@ class TaasAgentApi(object):
     """RPC calls to agent APIs"""
 
     def __init__(self, topic, host):
+        self.topic = topic
         self.host = host
         target = messaging.Target(topic=topic, version='1.0')
         self.client = n_rpc.get_client(target)
@@ -44,7 +48,10 @@ class TaasAgentApi(object):
         LOG.debug("In RPC Call for Create Tap Service: Host=%s, MSG=%s" %
                   (host, tap_service))
 
-        cctxt = self.client.prepare(fanout=True)
+        cctxt = self.client.prepare(
+            topic=topics.get_topic_name(
+                self.topic, taas_topics.TAPSERVICE, topics.CREATE),
+            server=host)
         cctxt.cast(context, 'create_tap_service', tap_service=tap_service,
                    host=host)
 
@@ -54,7 +61,10 @@ class TaasAgentApi(object):
         LOG.debug("In RPC Call for Create Tap Flow: Host=%s, MSG=%s" %
                   (host, tap_flow_msg))
 
-        cctxt = self.client.prepare(fanout=True)
+        cctxt = self.client.prepare(
+            topic=topics.get_topic_name(
+                self.topic, taas_topics.TAPFLOW, topics.CREATE),
+            server=host)
         cctxt.cast(context, 'create_tap_flow', tap_flow_msg=tap_flow_msg,
                    host=host)
 
@@ -64,7 +74,10 @@ class TaasAgentApi(object):
         LOG.debug("In RPC Call for Delete Tap Service: Host=%s, MSG=%s" %
                   (host, tap_service))
 
-        cctxt = self.client.prepare(fanout=True)
+        cctxt = self.client.prepare(
+            topic=topics.get_topic_name(
+                self.topic, taas_topics.TAPSERVICE, topics.DELETE),
+            server=host)
         cctxt.cast(context, 'delete_tap_service', tap_service=tap_service,
                    host=host)
 
@@ -74,7 +87,10 @@ class TaasAgentApi(object):
         LOG.debug("In RPC Call for Delete Tap Flow: Host=%s, MSG=%s" %
                   (host, tap_flow_msg))
 
-        cctxt = self.client.prepare(fanout=True)
+        cctxt = self.client.prepare(
+            topic=topics.get_topic_name(
+                self.topic, taas_topics.TAPFLOW, topics.DELETE),
+            server=host)
         cctxt.cast(context, 'delete_tap_flow', tap_flow_msg=tap_flow_msg,
                    host=host)
 
