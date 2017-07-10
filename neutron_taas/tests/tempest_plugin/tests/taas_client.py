@@ -27,23 +27,23 @@ class TaaSClientMixin(object):
     @classmethod
     def resource_setup(cls):
         super(TaaSClientMixin, cls).resource_setup()
-        manager = cls.manager
+        os_primary = cls.os_primary
         cls.tap_services_client = client.TapServicesClient(
-            manager.auth_provider,
+            os_primary.auth_provider,
             CONF.network.catalog_type,
             CONF.network.region or CONF.identity.region,
             endpoint_type=CONF.network.endpoint_type,
             build_interval=CONF.network.build_interval,
             build_timeout=CONF.network.build_timeout,
-            **manager.default_params)
+            **os_primary.default_params)
         cls.tap_flows_client = client.TapFlowsClient(
-            manager.auth_provider,
+            os_primary.auth_provider,
             CONF.network.catalog_type,
             CONF.network.region or CONF.identity.region,
             endpoint_type=CONF.network.endpoint_type,
             build_interval=CONF.network.build_interval,
             build_timeout=CONF.network.build_timeout,
-            **manager.default_params)
+            **os_primary.default_params)
 
     def create_tap_service(self, **kwargs):
         body = self.tap_services_client.create_tap_service(
