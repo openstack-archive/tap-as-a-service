@@ -16,5 +16,5 @@
 from neutron_taas.tests.tempest_plugin.tests.scenario import manager
 
 
-class TaaSScenarioTest(manager.NetworkScenarioTest):
+class TaaSScenarioTest(os_primary.NetworkScenarioTest):
     pass

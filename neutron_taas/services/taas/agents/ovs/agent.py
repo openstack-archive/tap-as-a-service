@@ -44,7 +44,7 @@ class TaaSOVSAgentService(n_rpc.Service):
         super(TaaSOVSAgentService, self).start()
         self.tg.add_timer(
             cfg.CONF.taas_agent_periodic_interval,
-            self.manager.periodic_tasks,
+            self.os_primary.periodic_tasks,
             None,
             None
         )
@@ -67,7 +67,7 @@ def main():
     svc = TaaSOVSAgentService(
         host=cfg.CONF.host,
         topic=topics.TAAS_PLUGIN,
-        manager=mgr
+        os_primary=mgr
         )
     service.launch(cfg.CONF, svc).wait()
 
