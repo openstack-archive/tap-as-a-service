@@ -166,7 +166,7 @@ class Taas(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_namespace(cls):
-        return "http://wiki.openstack.org/wiki/Neutron/Taas/#API"
+        return "https://git.openstack.org/cgit/openstack/tap-as-a-service"
 
     @classmethod
     def get_updated(cls):

@@ -196,7 +196,7 @@ REST API impact
 Tap-as-a-Service shall be offered over the RESTFull API interface under
 the following namespace:
 
-http://wiki.openstack.org/Neutron/TaaS/API_1.0
+https://github.com/openstack/tap-as-a-service/blob/master/API_REFERENCE.rst
 
 The resource attribute map for TaaS is provided below:
 
