@@ -20,6 +20,7 @@ import testtools
 
 from neutron_lib import context
 from neutron_lib.utils import net as n_utils
+from oslo_config import cfg
 from oslo_utils import uuidutils
 
 import neutron.common.rpc as n_rpc
@@ -129,6 +130,33 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
     def test_create_tap_service(self):
         with self.tap_service():
             pass
+
+    def test_verify_taas_id_reused(self):
+        # make small range id
+        cfg.CONF.set_override("vlan_range_start", 1, group="taas")
+        cfg.CONF.set_override("vlan_range_end", 3, group="taas")
+        with self.tap_service() as ts_1, self.tap_service() as ts_2, \
+            self.tap_service() as ts_3, self.tap_service() as ts_4:
+            ts_id_1 = ts_1['id']
+            ts_id_2 = ts_2['id']
+            ts_id_3 = ts_3['id']
+            tap_id_assoc_1 = self._plugin.create_tap_id_association(
+                self._context, ts_id_1)
+            tap_id_assoc_2 = self._plugin.create_tap_id_association(
+                self._context, ts_id_2)
+            self.assertEqual(set([1, 2]), set([tap_id_assoc_1['taas_id'],
+                             tap_id_assoc_2['taas_id']]))
+            with testtools.ExpectedException(taas_ext.TapServiceLimitReached):
+                self._plugin.create_tap_id_association(
+                    self._context,
+                    ts_4['id']
+                )
+            # free an tap_id and verify could reallocate same taas id
+            self._plugin.delete_tap_service(self._context, ts_id_1)
+            tap_id_assoc_3 = self._plugin.create_tap_id_association(
+                self._context, ts_id_3)
+            self.assertEqual(set([1, 2]), set([tap_id_assoc_3['taas_id'],
+                             tap_id_assoc_2['taas_id']]))
 
     def test_create_tap_service_wrong_tenant_id(self):
         self._port_details['tenant_id'] = 'other-tenant'
