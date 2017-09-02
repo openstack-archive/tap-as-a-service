@@ -29,6 +29,12 @@ from sqlalchemy.engine import reflection
 
 import sqlalchemy as sa
 
+from neutron.db import migration
+
+
+# milestone identifier, used by neutron-db-manage
+neutron_milestone = [migration.PIKE]
+
 TABLE_NAME = 'tap_id_associations'
 
 

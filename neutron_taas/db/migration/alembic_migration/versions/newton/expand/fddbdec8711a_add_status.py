@@ -31,7 +31,7 @@ import sqlalchemy as sa
 
 
 # milestone identifier, used by neutron-db-manage
-neutron_milestone = [migration.NEWTON, migration.OCATA]
+neutron_milestone = [migration.NEWTON, migration.OCATA, migration.PIKE]
 
 
 def upgrade():
