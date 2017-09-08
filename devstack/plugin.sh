@@ -23,12 +23,9 @@ function install_taas {
 }
 
 function configure_taas_plugin {
-    if [ ! -d $NEUTRON_CONF_DIR ]; then
-        _create_neutron_conf_dir
-    fi
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
     neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
-    _neutron_service_plugin_class_add taas
+    neutron_service_plugin_class_add taas
 }
 
 if is_service_enabled taas; then
@@ -37,8 +34,8 @@ if is_service_enabled taas; then
             :
         elif [[ "$2" == "install" ]]; then
             install_taas
-            configure_taas_plugin
         elif [[ "$2" == "post-config" ]]; then
+            configure_taas_plugin
             neutron-db-manage --subproject tap-as-a-service upgrade head
             echo "Configuring taas"
             if [ "$TAAS_SERVICE_DRIVER" ]; then
