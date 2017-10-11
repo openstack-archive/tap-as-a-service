@@ -16,7 +16,7 @@
 import abc
 import six
 
-from neutron.agent.l2 import l2_agent_extension
+from neutron_lib.agent import l2_extension
 
 from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
 
@@ -67,7 +67,7 @@ class TaasAgentDriver(object):
         """Delete a tap flow request in driver."""
 
 
-class TaasAgentExtension(l2_agent_extension.L2AgentExtension):
+class TaasAgentExtension(l2_extension.L2AgentExtension):
 
     def initialize(self, connection, driver_type):
         """Initialize agent extension."""
