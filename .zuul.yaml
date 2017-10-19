@@ -1,0 +1,26 @@
+- project:
+    name: openstack/tap-as-a-service
+    check:
+      jobs:
+        - tempest-dsvm-tap-as-a-service
+    gate:
+      jobs:
+        - tempest-dsvm-tap-as-a-service
+
+- job:
+    name: tempest-dsvm-tap-as-a-service
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/tempest-dsvm-tap-as-a-service/run
+    post-run: playbooks/legacy/tempest-dsvm-tap-as-a-service/post
+    timeout: 7800
+    required-projects:
+      - openstack-infra/devstack-gate
+      - openstack/tap-as-a-service
+      - openstack/tempest
+    irrelevant-files:
+      - ^(test-|)requirements.txt$
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^neutron_taas/tests/unit/.*$
+      - ^setup.cfg$
+      - ^specs/.*$
