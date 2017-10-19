@@ -1,0 +1,10 @@
+Verified+1: Jenkins
+Code-Review+1: Reedip <reedip.banerjee@nectechnologies.in>
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Thu, 19 Oct 2017 06:02:45 +0000
+Reviewed-on: https://review.openstack.org/490309
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
