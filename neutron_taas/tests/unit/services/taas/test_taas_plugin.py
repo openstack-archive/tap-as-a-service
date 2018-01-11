@@ -63,6 +63,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'mac_address': n_utils.get_random_mac(
                 'fa:16:3e:00:00:00'.split(':')),
         }
+        self._qos_policy_id = uuidutils.generate_uuid()
         self._tap_service = {
             'tenant_id': self._tenant_id,
             'name': 'MyTap',
@@ -77,6 +78,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'source_port': self._port_id,
             'tenant_id': self._tenant_id,
             'project_id': self._project_id,
+            'qos_policy_id': self._qos_policy_id,
         }
 
     @contextlib.contextmanager
@@ -114,6 +116,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             yield self._plugin.create_tap_flow(self._context, req)
         self._tap_flow['id'] = mock.ANY
         self._tap_flow['status'] = 'ACTIVE'
+        self._tap_flow['qos_policy_id'] = mock.ANY
         self._tap_service['id'] = mock.ANY
 
         self.driver.assert_has_calls([

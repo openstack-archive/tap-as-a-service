@@ -14,12 +14,17 @@
 # under the License.
 
 
+from neutron.agent.common import ip_lib
 from neutron.agent.common import ovs_lib
 from neutron.agent.linux import utils
+from neutron.api.rpc.callbacks import resources
+from neutron.api.rpc.handlers import resources_rpc
 from neutron.conf.agent import common
 # from neutron.plugins.openvswitch.common import constants as ovs_consts
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
+from neutron.services.qos import qos_consts
+from neutron_lib import context as ctx
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -42,8 +47,11 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         LOG.debug("Initializing Taas OVS Driver")
         self.agent_api = None
         self.root_helper = common.get_root_helper(cfg.CONF)
+        self.use_qos = cfg.CONF.taas.use_qos
 
     def initialize(self):
+        self.context = ctx.get_admin_context()
+        self.resource_rpc = resources_rpc.ResourcesPullRpcApi()
         self.int_br = self.agent_api.request_int_br()
         self.tun_br = self.agent_api.request_tun_br()
         self.tap_br = OVSBridge_tap_extension('br-tap', self.root_helper)
@@ -53,6 +61,17 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
 
         # Setup key-value manager for ingress BCMC flows
         self.bcmc_kvm = taas_ovs_utils.key_value_mgr(4096)
+
+    def prepare_qos_port(self):
+        exists = ip_lib.IPDevice('veth-int-tap').exists()
+        if not exists:
+            ip_wrapper = ip_lib.IPWrapper()
+            int_veth, tap_veth = ip_wrapper.add_veth('veth-int-tap',
+                                                     'veth-tap-int')
+            int_veth.link.set_up()
+            tap_veth.link.set_up()
+        ofport = self.int_br.add_port('veth-int-tap')
+        self.tap_br.add_port('veth-tap-int')
 
     def setup_ovs_bridges(self):
         #
@@ -65,13 +84,21 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         self.tap_br.create()
 
         # Connect br-tap to br-int and br-tun
-        self.int_br.add_patch_port('patch-int-tap', 'patch-tap-int')
-        self.tap_br.add_patch_port('patch-tap-int', 'patch-int-tap')
+        if self.use_qos:
+            self.prepare_qos_port()
+        else:
+            self.int_br.add_patch_port('patch-int-tap', 'patch-tap-int')
+            self.tap_br.add_patch_port('patch-tap-int', 'patch-int-tap')
+
         self.tun_br.add_patch_port('patch-tun-tap', 'patch-tap-tun')
         self.tap_br.add_patch_port('patch-tap-tun', 'patch-tun-tap')
 
         # Get patch port IDs
-        patch_tap_int_id = self.tap_br.get_port_ofport('patch-tap-int')
+        if self.use_qos:
+            patch_tap_int_id = self.tap_br.get_port_ofport('veth-tap-int')
+        else:
+            patch_tap_int_id = self.tap_br.get_port_ofport('patch-tap-int')
+
         patch_tap_tun_id = self.tap_br.get_port_ofport('patch-tap-tun')
         patch_tun_tap_id = self.tun_br.get_port_ofport('patch-tun-tap')
 
@@ -205,8 +232,12 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         port_vlan_id = port_dict[ovs_port.port_name]
 
         # Get patch port IDs
-        patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
-        patch_tap_int_id = self.tap_br.get_port_ofport('patch-tap-int')
+        if self.use_qos:
+            patch_int_tap_id = self.int_br.get_port_ofport('veth-int-tap')
+            patch_tap_int_id = self.int_br.get_port_ofport('veth-tap-int')
+        else:
+            patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
+            patch_tap_int_id = self.tap_br.get_port_ofport('patch-tap-int')
 
         # Add flow(s) in br-int
         self.int_br.add_flow(table=0,
@@ -264,7 +295,10 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         taas_id = tap_service['taas_id']
 
         # Get patch port ID
-        patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
+        if self.use_qos:
+            patch_int_tap_id = self.int_br.get_port_ofport('veth-int-tap')
+        else:
+            patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
 
         # Delete flow(s) from br-int
         self.int_br.delete_flows(table=0,
@@ -291,6 +325,58 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
 
         return
 
+    def create_qos_rule(self, port_name, port_id, rule):
+        max_bw_in_bits = str(rule.max_kbps * 1000)
+        max_burst_in_bits = str(rule.max_burst_kbps * 1000)
+        queue_other_config = {
+            'max-rate': max_bw_in_bits,
+            'burst': max_burst_in_bits,
+        }
+        qos = self.int_br._find_qos(port_name)
+        queue = self.int_br._find_queue(port_name, port_id)
+        qos_uuid = qos['_uuid'] if qos else None
+        queue_uuid = queue['_uuid'] if queue else None
+        with self.int_br.ovsdb.transaction(check_error=True) as txn:
+            queue_uuid = self.int_br._update_bw_limit_queue(
+                txn, port_name, queue_uuid, port_id,
+                queue_other_config
+            )
+
+            qos_uuid = self.int_br._update_bw_limit_profile(
+                txn, port_name, qos_uuid, queue_uuid, port_id
+            )
+
+            txn.add(self.int_br.ovsdb.db_set(
+                'Port', port_name, ('qos', qos_uuid)))
+        
+    def delete_qos_rule(self, port_name, port_id):
+        qos = self.int_br._find_qos(port_name)
+
+        entries = self.int_br.ovsdb.db_find(
+            'QoS', ('external_ids', '=', {'id': port_name}),
+            columns=['queues']).execute()
+        if entries:
+            queues = entries[0]['queues']
+            if queues.has_key(port_id):
+                queue = queues.pop(port_id)
+                with self.int_br.ovsdb.transaction(check_error=True) as txn:
+                    if len(queues) == 0:
+                        # Clear qos column of Port record.
+                        txn.add(self.int_br.ovsdb.db_clear(
+                            'Port', port_name, 'qos'))
+                        # Destroy specified record from QoS table.
+                        txn.add(self.int_br.ovsdb.db_destroy(
+                            'QoS', qos['_uuid']))
+                    else:
+                        # Clear queue column of QoS.
+                        txn.add(self.int_br.ovsdb.db_clear(
+                            'QoS', qos['_uuid'], 'queues'))
+                        # Set queue column of QoS.
+                        txn.add(self.int_br.ovsdb.db_set(
+                            'QoS', qos['_uuid'], ('queues', queues)))
+                    # Destroy specified record from Queue table.
+                    txn.add(self.int_br.ovsdb.db_destroy('Queue', queue.uuid))
+
     def create_tap_flow(self, tap_flow):
         taas_id = tap_flow['taas_id']
         port = tap_flow['port']
@@ -300,16 +386,36 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         ovs_port = self.int_br.get_vif_port_by_id(port['id'])
         ovs_port_id = ovs_port.ofport
 
+        qos_policy_id = tap_flow['qos_policy_id'] if self.use_qos else None
+        qos_action = ""
+        if qos_policy_id:
+            qos_policy = self.resource_rpc.pull(
+                self.context, resources.QOS_POLICY, qos_policy_id)
+            if qos_policy:
+                for rule in qos_policy.rules:
+                    # Only RULE_TYPE_BANDWIDTH_LIMIT is supported.
+                    if rule.rule_type == qos_consts.RULE_TYPE_BANDWIDTH_LIMIT:
+                        self.create_qos_rule(
+                            'veth-int-tap', ovs_port_id, rule)
+                        qos_action = ",set_queue:%s" % ovs_port_id
+            else:
+                LOG.info("QoS policy %s is not available, skipping." %
+                         qos_policy_id)
+
         # Get patch port ID
-        patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
+        if self.use_qos:
+            patch_int_tap_id = self.int_br.get_port_ofport('veth-int-tap')
+        else:
+            patch_int_tap_id = self.int_br.get_port_ofport('patch-int-tap')
 
         # Add flow(s) in br-int
         if direction == 'OUT' or direction == 'BOTH':
             self.int_br.add_flow(table=0,
                                  priority=20,
                                  in_port=ovs_port_id,
-                                 actions="normal,mod_vlan_vid:%s,output:%s" %
-                                 (str(taas_id), str(patch_int_tap_id)))
+                                 actions="normal,mod_vlan_vid:%s%s,output:%s" %
+                                 (str(taas_id), qos_action,
+                                  str(patch_int_tap_id)))
 
         if direction == 'IN' or direction == 'BOTH':
             port_mac = tap_flow['port_mac']
@@ -340,8 +446,9 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
                                  priority=20,
                                  # dl_vlan=port_vlan_id,
                                  dl_dst=port_mac,
-                                 actions="normal,mod_vlan_vid:%s,output:%s" %
-                                 (str(taas_id), str(patch_int_tap_id)))
+                                 actions="normal,mod_vlan_vid:%s%s,output:%s" %
+                                 (str(taas_id), qos_action,
+                                  str(patch_int_tap_id)))
 
             # self._add_update_ingress_bcmc_flow(port_vlan_id,
             #                                    taas_id,
@@ -368,12 +475,22 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         return
 
     def delete_tap_flow(self, tap_flow):
+        try:
+            self._delete_tap_flow(tap_flow)
+        except:
+            import traceback
+            LOG.debug(traceback.format_exc())
+
+    def _delete_tap_flow(self, tap_flow):
         port = tap_flow['port']
         direction = tap_flow['tap_flow']['direction']
 
         # Get OVS port id for tap flow port
         ovs_port = self.int_br.get_vif_port_by_id(port['id'])
         ovs_port_id = ovs_port.ofport
+
+        if self.use_qos:
+            self.delete_qos_rule('veth-int-tap', ovs_port_id)
 
         # Delete flow(s) from br-int
         if direction == 'OUT' or direction == 'BOTH':

@@ -18,6 +18,7 @@ from neutron_taas._i18n import _
 from neutronclient.common import extension
 from neutronclient.common import utils
 from neutronclient.neutron import v2_0 as neutronv20
+from neutronclient.neutron.v2_0.qos import policy as qos_policy
 
 
 def _add_updatable_args(parser):
@@ -47,7 +48,9 @@ class ListTapFlow(extension.ClientExtensionList, TapFlow):
     """List tap flows."""
 
     shell_command = 'tap-flow-list'
-    list_columns = ['id', 'name', 'source_port', 'tap_service_id', 'status']
+    list_columns = [
+        'id', 'name', 'source_port', 'tap_service_id', 'status', 'qos_policy_id'
+    ]
     pagination_support = True
     sorting_support = True
 
@@ -77,6 +80,11 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             choices=['IN', 'OUT', 'BOTH'],
             type=utils.convert_to_uppercase,
             help=_('Direction of the Tap flow.'))
+        parser.add_argument(
+            '--qos-policy',
+            required=False,
+            metavar="QOS_POLICY",
+            help=_('QoS policy for mirror traffic.'))
 
     def args2body(self, parsed_args):
         client = self.get_client()
@@ -88,6 +96,13 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             parsed_args.tap_service)
         body = {'source_port': source_port,
                 'tap_service_id': tap_service_id}
+
+        if parsed_args.qos_policy:
+            qos_policy_id = qos_policy.get_qos_policy_id(client,
+                                                         parsed_args.qos_policy)
+            if qos_policy_id:
+                body['qos_policy_id'] = qos_policy_id
+
         neutronv20.update_dict(parsed_args, body, ['tenant_id', 'direction'])
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}

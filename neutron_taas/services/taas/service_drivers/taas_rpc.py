@@ -125,12 +125,14 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
+        qos_policy_id = tf['qos_policy_id']
         # Send RPC message to both the source port host and
         # tap service(destination) port host
         rpc_msg = {'tap_flow': tf,
                    'port_mac': port_mac,
                    'taas_id': taas_id,
-                   'port': port}
+                   'port': port,
+                   'qos_policy_id': qos_policy_id}
 
         self.agent_rpc.create_tap_flow(context._plugin_context, rpc_msg, host)
         return

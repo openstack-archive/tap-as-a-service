@@ -28,6 +28,10 @@ TaasOpts = [
         'enabled',
         default=False,
         help=_("Enable TaaS")),
+    cfg.BoolOpt(
+        'use_qos',
+        default=False,
+        help=_("Use TaaS QoS function")),
 ]
 cfg.CONF.register_opts(TaasOpts, 'taas')
 

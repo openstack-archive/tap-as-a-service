@@ -114,7 +114,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'validate': {'type:values': direction_enum},
                       'is_visible': True},
         'status': {'allow_post': False, 'allow_put': False,
-                   'is_visible': True}
+                   'is_visible': True},
+        'qos_policy_id': {'allow_post': True, 'allow_put': True,
+                          'validate': {'type:uuid_or_none': None},
+                          'is_visible': True, 'default': None}
     }
 }
 
