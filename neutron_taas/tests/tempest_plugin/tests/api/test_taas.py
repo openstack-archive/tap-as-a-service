@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from tempest.common import utils
 from tempest import config
 from tempest.lib import decorators
-from tempest import test
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
 
@@ -27,7 +27,7 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     @classmethod
     def resource_setup(cls):
         super(TaaSExtensionTestJSON, cls).resource_setup()
-        if not test.is_extension_enabled('taas', 'network'):
+        if not utils.is_extension_enabled('taas', 'network'):
             msg = "TaaS Extension not enabled."
             raise cls.skipException(msg)
 
