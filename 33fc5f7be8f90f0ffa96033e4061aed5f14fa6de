@@ -1,0 +1,8 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 16 Feb 2018 06:19:07 +0000
+Reviewed-on: https://review.openstack.org/538199
+Project: openstack/tap-as-a-service
+Branch: refs/heads/stable/pike
