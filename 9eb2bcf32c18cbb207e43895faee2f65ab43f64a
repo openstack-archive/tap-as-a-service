@@ -1,0 +1,10 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Code-Review+1: Kazuhiro Suzuki <kaz@jp.fujitsu.com>
+Code-Review+1: Miguel Lavalle <miguel.lavalle@huawei.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 16 Feb 2018 06:32:30 +0000
+Reviewed-on: https://review.openstack.org/511124
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
