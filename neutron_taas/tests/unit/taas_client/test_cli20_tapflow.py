@@ -43,12 +43,14 @@ class CLITestV20TapFlowJSON(test_cli20.CLITestV20Base):
         return contrib
 
     def test_ext_cmd_loaded(self):
-        shell.NeutronShell('2.0')
+        neutron_shell = shell.NeutronShell('2.0')
         extension_cmd = {'tap-flow-create': tapflow.CreateTapFlow,
                          'tap-flow-delete': tapflow.DeleteTapFlow,
                          'tap-flow-show': tapflow.ShowTapFlow,
                          'tap-flow-list': tapflow.ListTapFlow}
-        self.assertDictContainsSubset(extension_cmd, shell.COMMANDS['2.0'])
+        for cmd_name, cmd_class in extension_cmd.items():
+            found = neutron_shell.command_manager.find_command([cmd_name])
+            self.assertEqual(cmd_class, found[0])
 
     def _test_create_tap_flow(self, port_id="random_port",
                               service_id="random_service",
