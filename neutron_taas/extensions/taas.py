@@ -165,10 +165,6 @@ class Taas(extensions.ExtensionDescriptor):
         return "Neutron Tap as a Service Extension."
 
     @classmethod
-    def get_namespace(cls):
-        return "http://wiki.openstack.org/wiki/Neutron/Taas/#API"
-
-    @classmethod
     def get_updated(cls):
         return "2015-01-14T10:00:00-00:00"
 
