@@ -1,5 +1,4 @@
 - project:
-    name: openstack/tap-as-a-service
     check:
       jobs:
         - tap-as-a-service-tempest-dsvm
