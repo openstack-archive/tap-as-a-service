@@ -118,7 +118,7 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
             topics.TAAS_PLUGIN, self.conf.host)
 
         endpoints = [self]
-        conn = n_rpc.create_connection()
+        conn = n_rpc.Connection()
         conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
         conn.consume_in_threads()
 

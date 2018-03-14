@@ -19,7 +19,7 @@
 
 
 function install_taas {
-    pip_install --no-deps --editable $TAAS_PLUGIN_PATH
+    setup_develop $TAAS_PLUGIN_PATH
 }
 
 function configure_taas_plugin {
