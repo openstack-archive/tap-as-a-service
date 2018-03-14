@@ -39,7 +39,7 @@ class DummyError(Exception):
 class TestTaasPlugin(testlib_api.SqlTestCase):
     def setUp(self):
         super(TestTaasPlugin, self).setUp()
-        mock.patch.object(n_rpc, 'create_connection', auto_spec=True).start()
+        mock.patch.object(n_rpc, 'Connection', auto_spec=True).start()
         mock.patch.object(taas_agent_api,
                           'TaasCallbacks', auto_spec=True).start()
         mock.patch.object(taas_agent_api,
