@@ -197,8 +197,6 @@ class Taas(extensions.ExtensionDescriptor):
 
 @six.add_metaclass(abc.ABCMeta)
 class TaasPluginBase(service_base.ServicePluginBase):
-    def get_plugin_name(self):
-        return constants.TAAS
 
     def get_plugin_description(self):
         return "Tap Service Plugin"
