@@ -1,0 +1,8 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Sun, 13 May 2018 13:07:59 +0000
+Reviewed-on: https://review.openstack.org/553053
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
