@@ -1,0 +1,11 @@
+---
+launchpad: tap-as-a-service
+type: other
+releases:
+  - projects:
+      - hash: e528a0ba81f24d0da178bbfac94d517f664aa149
+        repo: openstack/tap-as-a-service
+    version: 3.0.0
+branches:
+  - name: stable/queens
+    location: 3.0.0
