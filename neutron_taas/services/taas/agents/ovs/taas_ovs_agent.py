@@ -69,7 +69,7 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         return
 
     def create_tap_service(self, context, tap_service, host):
-        """Handle Rpc from plugin to create a firewall."""
+        """Handle Rpc from plugin to create a tap_service."""
         if host != self.conf.host:
             return
         LOG.debug("In RPC Call for Create Tap Service: MSG=%s" % tap_service)
