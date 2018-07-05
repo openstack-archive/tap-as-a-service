@@ -1,0 +1,12 @@
+Code-Review+2: YAMAMOTO Takashi <yamamoto@midokura.com>
+Code-Review+1: Kazuhiro Suzuki <kaz@jp.fujitsu.com>
+Code-Review+1: Alessandro Nesta <huang.zhiping@99cloud.net>
+Code-Review+1: qingszhao <zhao.daqing@99cloud.net>
+Code-Review+1: wu.chunyang <wu.chunyang@99cloud.net>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Thu, 05 Jul 2018 15:51:17 +0000
+Reviewed-on: https://review.openstack.org/551655
+Project: openstack/tap-as-a-service
+Branch: refs/heads/master
