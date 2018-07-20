@@ -62,6 +62,12 @@ class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
 
+class SriovNicSwitchDriverInvocationError(qexception.Invalid):
+    message = _("Failed to invoke sys_fs command on driver for following parameters: "
+                "%(tap_service_pf_device)s, %(tap_service_vf_index)s, %(source_vf_index)s, "
+                "%(common_vlans_ranges_str)s, %(vf_to_vf_all_vlans)s, %(direction)s")
+
+
 direction_enum = ['IN', 'OUT', 'BOTH']
 
 
