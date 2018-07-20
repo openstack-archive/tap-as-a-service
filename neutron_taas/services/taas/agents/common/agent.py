@@ -27,7 +27,7 @@ from neutron.common import rpc as n_rpc
 
 from neutron_taas._i18n import _
 from neutron_taas.common import topics
-from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
+from neutron_taas.services.taas.agents.common import taas_agent
 
 
 OPTS = [
@@ -39,15 +39,16 @@ OPTS = [
 ]
 
 
-class TaaSOVSAgentService(n_rpc.Service):
+class TaaSAgentService(n_rpc.Service):
     def start(self):
-        super(TaaSOVSAgentService, self).start()
-        self.tg.add_timer(
-            cfg.CONF.taas_agent_periodic_interval,
-            self.manager.periodic_tasks,
-            None,
-            None
-        )
+        super(TaaSAgentService, self).start()
+        if 'OvsTaasDriver' in cfg.CONF.taas.driver:
+            self.tg.add_timer(
+                cfg.CONF.taas_agent_periodic_interval,
+                self.manager.periodic_tasks,
+                None,
+                None
+            )
 
 
 def main():
@@ -58,13 +59,13 @@ def main():
     config.setup_logging()
 
     # Set up RPC
-    mgr = taas_ovs_agent.TaasOvsAgentRpcCallback(cfg.CONF)
+    mgr = taas_agent.TaasAgentRpcCallback(cfg.CONF)
     endpoints = [mgr]
     conn = n_rpc.create_connection()
     conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
     conn.consume_in_threads()
 
-    svc = TaaSOVSAgentService(
+    svc = TaaSAgentService(
         host=cfg.CONF.host,
         topic=topics.TAAS_PLUGIN,
         manager=mgr
