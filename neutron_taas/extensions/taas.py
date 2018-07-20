@@ -62,6 +62,21 @@ class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
 
+class SriovNicSwitchDriverInvocationError(qexception.Invalid):
+    message = _("Failed to invoke sys_fs command on driver, with following "
+                "parameters: %(tap_service_pf_device)s, "
+                "%(tap_service_vf_index)s, %(source_vf_index)s, "
+                "%(common_vlans_ranges_str)s, %(vf_to_vf_all_vlans)s, "
+                "%(direction)s")
+
+
+class PciDeviceNotFoundById(qexception.NotFound):
+    message = _("PCI device %(id)s not found")
+
+
+class PciSlotNotFound(qexception.NotFound):
+    message = _("PCI slot (Port-id, MAC): %(port_id)s, %(mac)s not found")
+
 direction_enum = ['IN', 'OUT', 'BOTH']
 
 

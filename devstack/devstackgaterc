@@ -23,7 +23,7 @@ OVERRIDE_ENABLED_SERVICES=key,mysql,rabbit
 OVERRIDE_ENABLED_SERVICES+=,g-api,g-reg
 OVERRIDE_ENABLED_SERVICES+=,n-api,n-cond,n-cpu,n-crt,n-sch,placement-api
 OVERRIDE_ENABLED_SERVICES+=,q-agt,q-dhcp,q-l3,q-meta,q-metering,q-svc,quantum
-OVERRIDE_ENABLED_SERVICES+=,taas,taas_openvswitch_agent
+OVERRIDE_ENABLED_SERVICES+=,taas,taas_agent
 OVERRIDE_ENABLED_SERVICES+=,tempest,dstat
 export OVERRIDE_ENABLED_SERVICES
 
