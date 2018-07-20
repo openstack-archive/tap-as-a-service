@@ -35,7 +35,8 @@ function configure_taas_openvswitch_agent {
     local conf=$TAAS_OVS_AGENT_CONF_FILE
 
     cp $TAAS_PLUGIN_PATH/etc/taas.ini $conf
-    iniset $conf taas driver neutron_taas.services.taas.drivers.linux.ovs_taas.OvsTaasDriver
+    #iniset $conf taas driver neutron_taas.services.taas.drivers.linux.ovs_taas.OvsTaasDriver
+    iniset $conf taas driver neutron_taas.services.taas.drivers.linux.sriov_nic_taas.SriovNicTaasDriver
     iniset $conf taas enabled True
     iniset $conf taas vlan_range_start 3000
     iniset $conf taas vlan_range_end 3500
