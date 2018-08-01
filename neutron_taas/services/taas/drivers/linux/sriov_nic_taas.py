@@ -39,11 +39,11 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
         if port_params['pf_device'] and port_params['vf_index']:
             LOG.debug("TaaS SRIOV: create_tap_service RPC invoked for "
-                      "port %(id), MAC %(ts_port_mac), PCI %(ts_pci_slot), "
-                      "VF-Index %(vf_index), PF-Device %(pf_device), "
-                      "VLAN-Mirror %(vlan_mirror); ",
+                      "port %(id)s, MAC %(ts_port_mac)s, PCI %(ts_pci_slot)s, "
+                      "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
+                      "VLAN-Mirror %(vlan_mirror)s; ",
                       {'id': ts_port['id'],
-                       'ts_port_mac': port_params['port_mac'],
+                       'ts_port_mac': port_params['mac'],
                        'ts_pci_slot': port_params['pci_slot'],
                        'vf_index': port_params['vf_index'],
                        'pf_device': port_params['pf_device'],
@@ -58,9 +58,9 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
         if port_params['pf_device'] and port_params['vf_index']:
             LOG.debug("TaaS SRIOV: delete_tap_service RPC invoked for "
-                      "port %(id), MAC %(ts_port_mac), PCI %(ts_pci_slot), "
-                      "VF-Index %(vf_index), PF-Device %(pf_device), "
-                      "VLAN-Mirror %(vlan_mirror); ",
+                      "port %(id)s, MAC %(ts_port_mac)s, PCI %(ts_pci_slot)s, "
+                      "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
+                      "VLAN-Mirror %(vlan_mirror)s; ",
                       {'id': ts_port['id'],
                        'ts_port_mac': port_params['port_mac'],
                        'ts_pci_slot': port_params['pci_slot'],
@@ -88,8 +88,8 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
             ts_port_params['vlan_mirror'] = '0-4095'
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
@@ -108,8 +108,8 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
         if src_port_params['pf_device'] != ts_port_params['pf_device']:
             LOG.error("SRIOV NIC Driver only supports mirroring b/w "
-                      "VF_src %(VF_src) -> VF_probe %(VF_probe) on same PF. "
-                      "PF_src %(PF_src) and PF_probe %(PF_probe) "
+                      "VF_src %(VF_src)s -> VF_probe %(VF_probe)s on same PF."
+                      " PF_src %(PF_src)s and PF_probe %(PF_probe)s "
                       "are different; ",
                       {'VF_src': src_port_params['vf_index'],
                        'VF_probe': ts_port_params['vf_index'],
@@ -168,8 +168,8 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
             ts_port_params['vlan_mirror'] = '0-4095'
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
