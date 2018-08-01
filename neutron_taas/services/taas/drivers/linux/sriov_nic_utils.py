@@ -215,7 +215,7 @@ class SriovNicUtils(object):
         except Exception:
             LOG.warning("No net device was found for VF %(vfaddress)s",
                         {'vfaddress': vfaddress})
-            return
+            raise taas.PciNetworkNotFound(vfaddress=vfaddress)
 
     def merge_ranges(self, ranges):
         """Merge overlapping and adjacent ranges
@@ -308,7 +308,7 @@ class SriovNicUtils(object):
             src_vlans = guest_vlans
 
         if not pci_slot:
-            LOG.error("No PCI Slot for sriov_port %(id) with MAC %(mac); ",
+            LOG.error("No PCI Slot for sriov_port %(id)s with MAC %(mac)s; ",
                       {'id': sriov_port['id'], 'mac': port_mac})
             return
 

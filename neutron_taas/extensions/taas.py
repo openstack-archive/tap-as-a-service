@@ -77,6 +77,10 @@ class PciDeviceNotFoundById(qexception.NotFound):
 class PciSlotNotFound(qexception.NotFound):
     message = _("PCI slot (Port-id, MAC): %(port_id)s, %(mac)s not found")
 
+
+class PciNetworkNotFound(qexception.NotFound):
+    message = _("No net device found for VF (vfaddress): %(vfaddress)s ")
+
 direction_enum = ['IN', 'OUT', 'BOTH']
 
 
