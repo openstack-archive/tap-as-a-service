@@ -64,3 +64,21 @@ class TaaSClientMixin(object):
                         self.tap_flows_client.delete_tap_flow,
                         tap_flow['id'])
         return tap_flow
+
+    def update_tap_service(self, tap_service_id, **kwargs):
+        body = self.tap_services_client.update_tap_service(
+            tap_service_id,
+            **kwargs)
+        tap_service = body['tap_service']
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.tap_services_client.delete_tap_service,
+                        tap_service['id'])
+
+    def update_tap_flow(self, tap_flow_id, **kwargs):
+        body = self.tap_flows_client.update_tap_flow(
+            tap_flow_id,
+            **kwargs)
+        tap_flow = body['tap_flow']
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.tap_flows_client.delete_tap_flow,
+                        tap_flow['id'])
