@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.common import utils
 from tempest import config
 from tempest.lib import decorators
+from tempest import test
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
 
@@ -27,7 +27,7 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     @classmethod
     def resource_setup(cls):
         super(TaaSExtensionTestJSON, cls).resource_setup()
-        if not utils.is_extension_enabled('taas', 'network'):
+        if not test.is_extension_enabled('taas', 'network'):
             msg = "TaaS Extension not enabled."
             raise cls.skipException(msg)
 
@@ -47,3 +47,26 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         # delete port
         self.ports_client.delete_port(port['id'])
         self.tap_services_client.delete_tap_service(tap_service['id'])
+
+    @decorators.idempotent_id('687089b8-b045-496d-86bf-030b380039d1')
+    def test_update_tap_service(self):
+        network = self.create_network()
+        port = self.create_port(network)
+        tap_service = self.create_tap_service(port_id=port['id'])
+        # Update description of the tap service
+        self.update_tap_service(
+            tap_service['id'],
+            description='Tap Service Description Updated')
+
+    @decorators.idempotent_id('bb4d5482-37fc-46b5-85a5-5867e9adbfae')
+    def test_update_tap_flow(self):
+        network = self.create_network()
+        port = self.create_port(network)
+        tap_service = self.create_tap_service(port_id=port['id'])
+        tap_flow = self.create_tap_flow(
+            tap_service_id=tap_service['id'],
+            direction='BOTH', source_port=port['id'])
+        # Update description of the tap flow
+        self.update_tap_flow(
+            tap_flow['id'],
+            description='Tap Flow Description Updated')
