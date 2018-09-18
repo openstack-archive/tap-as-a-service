@@ -26,6 +26,9 @@ function configure_taas_plugin {
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
     neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
     neutron_service_plugin_class_add taas
+    neutron_deploy_rootwrap_filters $TAAS_PLUGIN_PATH
+    # Using sudo to gain the root privilege to be able to copy file to rootwrap.d
+    #sudo cp $TAAS_PLUGIN_PATH/etc/neutron/rootwrap.d/taas-i40e-sysfs.filters /etc/neutron/rootwrap.d/taas-i40e-sysfs.filters
 }
 
 if is_service_enabled taas; then
