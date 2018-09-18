@@ -41,8 +41,6 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         super(TestTaasPlugin, self).setUp()
         mock.patch.object(n_rpc, 'Connection', auto_spec=True).start()
         mock.patch.object(taas_agent_api,
-                          'TaasCallbacks', auto_spec=True).start()
-        mock.patch.object(taas_agent_api,
                           'TaasAgentApi', auto_spec=True).start()
         self.driver = mock.MagicMock()
         mock.patch('neutron.services.service_base.load_drivers',
@@ -70,6 +68,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'port_id': self._port_id,
             'project_id': self._project_id,
         }
+        self.vlan_filter = "1-5,9,18,27-30,99-108,4000-4095"
         self._tap_flow = {
             'description': 'This is my tap flow',
             'direction': 'BOTH',
@@ -77,6 +76,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'source_port': self._port_id,
             'tenant_id': self._tenant_id,
             'project_id': self._project_id,
+            'vlan_filter': self.vlan_filter,
         }
 
     @contextlib.contextmanager
@@ -115,6 +115,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self._tap_flow['id'] = mock.ANY
         self._tap_flow['status'] = 'ACTIVE'
         self._tap_service['id'] = mock.ANY
+        self._tap_flow['vlan_filter'] = mock.ANY
 
         self.driver.assert_has_calls([
             mock.call.create_tap_flow_precommit(mock.ANY),

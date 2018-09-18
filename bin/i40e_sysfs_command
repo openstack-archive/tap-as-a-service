@@ -1,5 +1,6 @@
-# Copyright (C) 2018 AT&T
-# Copyright (C) 2015 Midokura SARL.
+#!/usr/bin/env bash
+
+# Copyright (c) 2018 AT&T Corporation
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,7 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-TAAS = 'TAAS'
+help_msg="Incorrect arguments supplied!! Aborting....\nUsage: 1. VLANs to VF mirroring: $0 <phy-device-name> <dest-vf-index> <'vlan_mirror'> <'add'|'rem'> <vlan_ranges_string>\nUsage: 2. VF to VF mirroring: $0 <phy-device-name> <src-vf-index> <'ingress_mirror'|'egress_mirror'> <'add'|'rem'> <dest-vf-index>"
 
-# Complete VLAN Id Range
-VLAN_RANGE = '0-4095'
+(($#!=5)) && { echo -e ${help_msg} && exit 1; }
+
+echo ${4} ${5} > /sys/class/net/${1}/device/sriov/${2}/${3}
