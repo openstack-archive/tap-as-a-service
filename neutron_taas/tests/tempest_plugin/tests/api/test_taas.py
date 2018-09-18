@@ -25,6 +25,13 @@ CONF = config.CONF
 class TaaSExtensionTestJSON(base.BaseTaaSTest):
 
     @classmethod
+    @utils.requires_ext(extension='taas', service='network')
+    @utils.requires_ext(extension='security-group', service='network')
+    @utils.requires_ext(extension='router', service='network')
+    def skip_checks(cls):
+        super(TaaSExtensionTestJSON, cls).skip_checks()
+
+    @classmethod
     def resource_setup(cls):
         super(TaaSExtensionTestJSON, cls).resource_setup()
         if not utils.is_extension_enabled('taas', 'network'):
@@ -38,6 +45,19 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         tap_service = self.create_tap_service(port_id=port['id'])
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=port['id'])
+
+    @decorators.idempotent_id('897a0aaf-1b55-4ea8-9d9f-1bc0fd09cb60')
+    def test_create_tap_service_and_flow_vlan_filter(self):
+        """create tap service with vlan_filter
+
+        Test create tap service with additional vlan_filter argument.
+        """
+        network = self.create_network()
+        port = self.create_port(network)
+        tap_service = self.create_tap_service(port_id=port['id'])
+        self.create_tap_flow(tap_service_id=tap_service['id'],
+                             direction='BOTH', source_port=port['id'],
+                             vlan_filter='189,279,999-1008')
 
     @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
     def test_delete_tap_service_after_delete_port(self):
