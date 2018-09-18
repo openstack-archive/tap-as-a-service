@@ -26,6 +26,7 @@ function configure_taas_plugin {
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
     neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
     neutron_service_plugin_class_add taas
+    neutron_deploy_rootwrap_filters $TAAS_PLUGIN_PATH
 }
 
 if is_service_enabled taas; then
