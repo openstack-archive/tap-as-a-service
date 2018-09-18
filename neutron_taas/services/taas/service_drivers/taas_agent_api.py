@@ -21,15 +21,6 @@ import oslo_messaging as messaging
 LOG = logging.getLogger(__name__)
 
 
-class TaasCallbacks(object):
-    """Currently there are no callbacks to the Taas Plugin."""
-
-    def __init__(self, plugin):
-        super(TaasCallbacks, self).__init__()
-        self.plugin = plugin
-        return
-
-
 class TaasAgentApi(object):
     """RPC calls to agent APIs"""
 
