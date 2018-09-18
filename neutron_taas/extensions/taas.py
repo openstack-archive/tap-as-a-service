@@ -1,3 +1,4 @@
+# Copyright (C) 2018 AT&T
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
 #
@@ -27,6 +28,10 @@ from neutron_taas.common import constants
 from oslo_config import cfg
 
 import six
+
+# Regex for a comma-seperate list of integer values (VLANs)
+# For ex. "9,18,27-36,45-54" or "0-4095" or "9,18,27,36"
+RANGE_REGEX = r"^([0-9]+(-[0-9]+)?)(,([0-9]+(-[0-9]+)?))*$"
 
 # TaaS exception handling classes
 
@@ -58,6 +63,24 @@ class TapServiceNotBelongToTenant(qexception.NotAuthorized):
 class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
+
+class SriovNicSwitchDriverInvocationError(qexception.Invalid):
+    message = _("Failed to invoke SR-IOV TaaS driver command: "
+                "%(tap_service_pf_device)s, %(tap_service_vf_index)s, "
+                "%(source_vf_index)s, %(vlan_filter)s, "
+                "%(vf_to_vf_all_vlans)s, %(direction)s")
+
+class SriovVlanConfiguredForAnotherTapService(qexception.NotAuthorized):
+    message = _("VLANs [%(overlapping_vlans)s] in VLAN Fliter configured "
+                "already for another Tap Service: %(tap_service_id)s")
+
+
+class PciDeviceNotFoundById(qexception.NotFound):
+    message = _("PCI device %(id)s not found")
+
+
+class PciSlotNotFound(qexception.NotFound):
+    message = _("PCI slot (Port-id, MAC): %(port_id)s, %(mac)s not found")
 
 direction_enum = ['IN', 'OUT', 'BOTH']
 
@@ -114,7 +137,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'validate': {'type:values': direction_enum},
                       'is_visible': True},
         'status': {'allow_post': False, 'allow_put': False,
-                   'is_visible': True}
+                   'is_visible': True},
+        'vlan_filter': {'allow_post': True, 'allow_put': False,
+                        'validate': {'type:regex_or_none': RANGE_REGEX},
+                        'is_visible': True, 'default': None}
     }
 }
 
