@@ -1,0 +1,13 @@
+---
+prelude: >
+    Neutron TaaS is integrated with new TaaS Agent driver (i.e. SRIOV) for
+    Intel i40e driver backend.
+features:
+  - |
+    [`blueprint port-mirroring-sriov-vf <https://blueprints.launchpad.net/neutron/+spec/port-mirroring-sriov-vf>`_]
+    * Adds a new TaaS Agent driver (i.e. SRIOV) for Intel i40e driver backend.
+    * Neutron TaaS Agent is refactored to decouple its tight binding with ovs
+      driver. This prepares the taas agent code-base for addition of a new
+      TaaS Agent driver (SRIOV).
+    * Adds a new API extension, i.e. taas-vlan-filter for adding a new
+      attribute (vlan_filter) in tap-flow data model.
