@@ -69,7 +69,10 @@ TapFlow Represents the port from which the traffic needs to be mirrored.
                         'required_by_policy': True, 'is_visible': True},
         'direction': {'allow_post': True, 'allow_put': False,
                       'validate': {'type:values': direction_enum},
-                      'is_visible': True}
+                      'is_visible': True},
+        'vlan_filter': {'allow_post': True, 'allow_put': False,
+                        'validate': {'type:regex_or_none': RANGE_REGEX},
+                        'is_visible': True, 'default': None}
     }
 
     direction_enum = ['IN', 'OUT', 'BOTH']
@@ -172,7 +175,8 @@ extension
             "name": "flow1",
             "source_port": "775a58bb-e2c6-4529-a918-2f019169b5b1",
             "tap_service_id": "69bd12b2-0e13-45ec-9045-b674fd9f0468",
-            "tenant_id": "97e1586d580745d7b311406697aaf097"
+            "tenant_id": "97e1586d580745d7b311406697aaf097",
+            "vlan_filter": "9,18-27,36,45,54-63"
         }
     }
 
@@ -190,7 +194,8 @@ extension
             "name": "flow1",
             "source_port": "775a58bb-e2c6-4529-a918-2f019169b5b1",
             "tap_service_id": "69bd12b2-0e13-45ec-9045-b674fd9f0468",
-            "tenant_id": "97e1586d580745d7b311406697aaf097"
+            "tenant_id": "97e1586d580745d7b311406697aaf097",
+            "vlan_filter": "9,18-27,36,45,54-63"
         }
     }
 
@@ -215,7 +220,8 @@ extension
                 "name": "flow1",
                 "source_port": "775a58bb-e2c6-4529-a918-2f019169b5b1",
                 "tap_service_id": "c352f537-ad49-48eb-ab05-1c6b8cb900ff",
-                "tenant_id": "97e1586d580745d7b311406697aaf097"
+                "tenant_id": "97e1586d580745d7b311406697aaf097",
+                "vlan_filter": "9,18-27,36,45,54-63"
             }
         ]
     }
