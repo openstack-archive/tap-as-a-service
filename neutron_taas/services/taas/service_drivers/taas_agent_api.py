@@ -14,8 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron_lib import constants
 from neutron_lib import rpc as n_rpc
+from neutron_taas.services.taas.service_drivers import (service_driver_context
+                                                        as sd_context)
 from oslo_log import log as logging
+from oslo_utils import excutils
 import oslo_messaging as messaging
 
 LOG = logging.getLogger(__name__)
@@ -24,10 +28,58 @@ LOG = logging.getLogger(__name__)
 class TaasCallbacks(object):
     """Currently there are no callbacks to the Taas Plugin."""
 
-    def __init__(self, plugin):
+    def __init__(self, rpc_driver, plugin):
         super(TaasCallbacks, self).__init__()
+        self.rpc_driver = rpc_driver
         self.plugin = plugin
         return
+
+    def sync_tap_resources(self, context, sync_tap_res, host):
+        """Handle Rpc from Agent to sync up Tap resources."""
+        LOG.debug("In RPC Call for Sync Tap Resources: MSG=%s" % sync_tap_res)
+
+        # Get list of configured tap-services
+        active_tss = self.plugin.get_tap_services(
+            context,
+            filters={'status': [constants.ACTIVE]})
+
+        for ts in active_tss:
+            # If tap-service port is bound to a different host than the one
+            # which sent this RPC, then continue.
+            ts_port = self.plugin._get_port_details(
+                context, ts['port_id'])
+            if ts_port['binding:host_id'] != host:
+                continue;
+
+            driver_context = sd_context.TapServiceContext(self.plugin,
+                context, ts)
+            try:
+                self.rpc_driver.create_tap_service_postcommit(driver_context)
+            except Exception:
+                with excutils.save_and_reraise_exception():
+                    LOG.error("Failed to create tap service on driver,"
+                              "deleting tap_service %s", ts['id'])
+                    super(TaasPlugin, self.plugin).delete_tap_service(
+                        context, ts['id'])
+
+            # Get all the active tap flows for current tap-service
+            active_tfs = self.plugin.get_tap_flows(
+                context,
+                filters={'tap_service_id': [ts['id']],
+                         'status': [constants.ACTIVE]})
+
+            # Filter out the tap flows associated with distinct tap services
+            for tf in active_tfs:
+                driver_context = sd_context.TapFlowContext(self.plugin,
+                    context, tf)
+                try:
+                    self.rpc_driver.create_tap_flow_postcommit(driver_context)
+                except Exception:
+                    with excutils.save_and_reraise_exception():
+                        LOG.error("Failed to create tap flow on driver,"
+                                  "deleting tap_flow %s", tf['id'])
+                        super(TaasPlugin, self.plugin).delete_tap_flow(
+                            context, tf['id'])
 
 
 class TaasAgentApi(object):
