@@ -22,7 +22,7 @@ from neutron_lib.callbacks import registry
 from neutron_lib.callbacks import resources
 from neutron_lib import exceptions as n_exc
 
-from neutron_taas.common import constants
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas as taas_ex
 from neutron_taas.services.taas.service_drivers import (service_driver_context
@@ -43,14 +43,16 @@ def add_provider_configuration(type_manager, service_type):
 @registry.has_registry_receivers
 class TaasPlugin(taas_db.Taas_db_Mixin):
 
-    supported_extension_aliases = ["taas"]
+    supported_extension_aliases = ["taas",
+                                   "taas-vlan-filter"]
     path_prefix = "/taas"
 
     def __init__(self):
 
         LOG.debug("TAAS PLUGIN INITIALIZED")
         self.service_type_manager = st_db.ServiceTypeManager.get_instance()
-        add_provider_configuration(self.service_type_manager, constants.TAAS)
+        add_provider_configuration(self.service_type_manager,
+                                   taas_consts.TAAS)
         self._load_drivers()
         self.driver = self._get_driver_for_provider(self.default_provider)
 
@@ -59,7 +61,7 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
     def _load_drivers(self):
         """Loads plugin-drivers specified in configuration."""
         self.drivers, self.default_provider = service_base.load_drivers(
-            'TAAS', self)
+            taas_consts.TAAS, self)
 
     def _get_driver_for_provider(self, provider):
         if provider in self.drivers:
