@@ -17,9 +17,12 @@
 from neutron.db import servicetype_db as st_db
 from neutron.services import provider_configuration as pconf
 from neutron.services import service_base
+from neutron_lib.callbacks import events
+from neutron_lib.callbacks import registry
+from neutron_lib.callbacks import resources
 from neutron_lib import exceptions as n_exc
 
-from neutron_taas.common import constants
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas as taas_ex
 from neutron_taas.services.taas.service_drivers import (service_driver_context
@@ -37,16 +40,19 @@ def add_provider_configuration(type_manager, service_type):
         pconf.ProviderConfiguration('neutron_taas'))
 
 
+@registry.has_registry_receivers
 class TaasPlugin(taas_db.Taas_db_Mixin):
 
-    supported_extension_aliases = ["taas"]
+    supported_extension_aliases = ["taas",
+                                   "vlan-filter"]
     path_prefix = "/taas"
 
     def __init__(self):
 
         LOG.debug("TAAS PLUGIN INITIALIZED")
         self.service_type_manager = st_db.ServiceTypeManager.get_instance()
-        add_provider_configuration(self.service_type_manager, constants.TAAS)
+        add_provider_configuration(self.service_type_manager,
+                                   taas_consts.TAAS)
         self._load_drivers()
         self.driver = self._get_driver_for_provider(self.default_provider)
 
@@ -55,7 +61,7 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
     def _load_drivers(self):
         """Loads plugin-drivers specified in configuration."""
         self.drivers, self.default_provider = service_base.load_drivers(
-            'TAAS', self)
+            taas_consts.TAAS, self)
 
     def _get_driver_for_provider(self, provider):
         if provider in self.drivers:
@@ -174,3 +180,35 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                 with excutils.save_and_reraise_exception():
                     LOG.error("Failed to delete tap flow on driver. "
                               "tap_flow: %s", id)
+
+    @registry.receives(resources.PORT, [events.PRECOMMIT_DELETE])
+    def handle_delete_port(self, resource, event, trigger, context, **kwargs):
+        deleted_port = kwargs['port']
+        if not deleted_port:
+            LOG.error("TaaS: Handle Delete Port: Invalid port object received")
+            return
+
+        deleted_port_id = deleted_port['id']
+        LOG.info("TaaS: Handle Delete Port: %s", deleted_port_id)
+
+        with context.session.begin(subtransactions=True):
+            # Get list of configured tap-services
+            t_s_collection = self.get_tap_services(
+                context,
+                filters={'port_id': [deleted_port_id]}, fields=['id'])
+
+            for t_s in t_s_collection:
+                try:
+                    self.delete_tap_service(context, t_s['id'])
+                except taas_ex.TapServiceNotFound:
+                    LOG.debug("Not found tap_service: %s", t_s['id'])
+
+            t_f_collection = self.get_tap_flows(
+                context,
+                filters={'source_port': [deleted_port_id]}, fields=['id'])
+
+            for t_f in t_f_collection:
+                try:
+                    self.delete_tap_flow(context, t_f['id'])
+                except taas_ex.TapFlowNotFound:
+                    LOG.debug("Not found tap_flow: %s", t_f['id'])

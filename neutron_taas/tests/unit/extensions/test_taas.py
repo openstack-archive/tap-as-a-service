@@ -21,6 +21,7 @@ from oslo_utils import uuidutils
 from neutron.tests.unit.api.v2 import test_base as test_api_v2
 from neutron.tests.unit.extensions import base as test_api_v2_extension
 
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.extensions import taas as taas_ext
 
 _uuid = uuidutils.generate_uuid
