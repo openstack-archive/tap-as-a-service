@@ -70,6 +70,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'port_id': self._port_id,
             'project_id': self._project_id,
         }
+        self.vlan_mirror = "1-5,9,18,27-30,99-108,4000-4095"
         self._tap_flow = {
             'description': 'This is my tap flow',
             'direction': 'BOTH',
@@ -77,6 +78,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'source_port': self._port_id,
             'tenant_id': self._tenant_id,
             'project_id': self._project_id,
+            'vlan_mirror': self.vlan_mirror,
         }
 
     @contextlib.contextmanager
@@ -115,6 +117,7 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
         self._tap_flow['id'] = mock.ANY
         self._tap_flow['status'] = 'ACTIVE'
         self._tap_service['id'] = mock.ANY
+        self._tap_flow['vlan_mirror'] = mock.ANY
 
         self.driver.assert_has_calls([
             mock.call.create_tap_flow_precommit(mock.ANY),
