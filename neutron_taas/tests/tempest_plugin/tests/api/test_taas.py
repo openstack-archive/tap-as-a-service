@@ -39,6 +39,15 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=port['id'])
 
+    @decorators.idempotent_id('897a0aaf-1b55-4ea8-9d9f-1bc0fd09cb60')
+    def test_create_tap_service_and_flow_vlan_filter(self):
+        network = self.create_network()
+        port = self.create_port(network)
+        tap_service = self.create_tap_service(port_id=port['id'])
+        self.create_tap_flow(tap_service_id=tap_service['id'],
+                             direction='BOTH', source_port=port['id'],
+                             vlan_filter='189,279,999-1008')
+
     @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
     def test_delete_tap_service_after_delete_port(self):
         network = self.create_network()
