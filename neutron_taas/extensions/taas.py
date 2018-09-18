@@ -28,6 +28,8 @@ from oslo_config import cfg
 
 import six
 
+RANGE_REGEX = r"^([0-9]+(-[0-9]+)?)(,([0-9]+(-[0-9]+)?))*$"
+
 # TaaS exception handling classes
 
 
@@ -58,6 +60,21 @@ class TapServiceNotBelongToTenant(qexception.NotAuthorized):
 class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
+
+class SriovNicSwitchDriverInvocationError(qexception.Invalid):
+    message = _("Failed to invoke sys_fs command on driver, with following "
+                "parameters: %(tap_service_pf_device)s, "
+                "%(tap_service_vf_index)s, %(source_vf_index)s, "
+                "%(common_vlans_ranges_str)s, %(vf_to_vf_all_vlans)s, "
+                "%(direction)s")
+
+
+class PciDeviceNotFoundById(qexception.NotFound):
+    message = _("PCI device %(id)s not found")
+
+
+class PciSlotNotFound(qexception.NotFound):
+    message = _("PCI slot (Port-id, MAC): %(port_id)s, %(mac)s not found")
 
 direction_enum = ['IN', 'OUT', 'BOTH']
 
@@ -114,7 +131,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'validate': {'type:values': direction_enum},
                       'is_visible': True},
         'status': {'allow_post': False, 'allow_put': False,
-                   'is_visible': True}
+                   'is_visible': True},
+        'vlan_mirror': {'allow_post': True, 'allow_put': False,
+                        'validate': {'type:regex_or_none': RANGE_REGEX},
+                        'is_visible': True, 'default': None}
     }
 }
 

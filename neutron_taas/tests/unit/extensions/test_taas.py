@@ -83,6 +83,7 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             'tap_service_id': _uuid(),
             'source_port': _uuid(),
             'project_id': tenant_id,
+            'vlan_mirror': '0-4095',
         }
         data = {'tap_flow': tap_flow_data}
         expected_ret_val = copy.copy(data['tap_flow'])
