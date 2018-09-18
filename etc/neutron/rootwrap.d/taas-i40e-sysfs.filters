@@ -1,0 +1,9 @@
+# taas-i40e-sysfs filters
+
+# This file should be owned by (and only-writeable by) the root user
+
+[Filters]
+
+# This is needed to allow taas to insert/remove vlan id to the
+# target vf under /sys/class/net/[device-name]/device/sriov/[vf-index]/[mirror]
+i40e_sysfs_command: RegExpFilter, i40e_sysfs_command, root, i40e_sysfs_command, (?!.*\.\..*|.*\/.*).*, [0-9]+, (vlan|egress|ingress)_mirror, (?i)(add|rem), .*
