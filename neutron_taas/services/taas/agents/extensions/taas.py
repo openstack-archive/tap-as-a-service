@@ -18,13 +18,12 @@ import six
 
 from neutron_lib.agent import l2_extension
 
-from neutron_taas.services.taas.agents.ovs import taas_ovs_agent
+from neutron_taas.services.taas.agents.common import taas_agent
 
 from oslo_config import cfg
 from oslo_log import log as logging
 
 LOG = logging.getLogger(__name__)
-
 
 OPTS = [
     cfg.IntOpt(
@@ -71,7 +70,7 @@ class TaasAgentExtension(l2_extension.L2AgentExtension):
 
     def initialize(self, connection, driver_type):
         """Initialize agent extension."""
-        self.taas_agent = taas_ovs_agent.TaasOvsAgentRpcCallback(
+        self.taas_agent = taas_agent.TaasAgentRpcCallback(
             cfg.CONF, driver_type)
         self.taas_agent.consume_api(self.agent_api)
         self.taas_agent.initialize()
