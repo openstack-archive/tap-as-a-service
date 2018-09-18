@@ -1,6 +1,4 @@
 # Copyright (C) 2018 AT&T
-# Copyright (C) 2015 Midokura SARL.
-# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -14,7 +12,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-TAAS = 'TAAS'
+"""add_vlan_filter_to_tap_flow
 
-# Complete VLAN Id Range
-VLAN_RANGE = '0-4095'
+Revision ID: ccbcc559d175
+Revises: fddbdec8711a
+Create Date: 2018-09-18 19:33:32.119458
+
+"""
+
+# revision identifiers, used by Alembic.
+revision = 'ccbcc559d175'
+down_revision = 'fddbdec8711a'
+
+from alembic import op
+import sqlalchemy as sa
+
+TABLE_NAME = 'tap_flows'
+
+
+def upgrade():
+    op.add_column(TABLE_NAME, sa.Column('vlan_filter', sa.String(1024),
+                                        nullable=True))
