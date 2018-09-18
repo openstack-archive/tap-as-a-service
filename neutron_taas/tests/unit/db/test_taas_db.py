@@ -19,6 +19,7 @@ from neutron_lib import context
 from oslo_utils import importutils
 from oslo_utils import uuidutils
 
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas
 
@@ -46,14 +47,16 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
                                 "port_id": port_id}}
 
     def _get_tap_flow_data(self, tap_service_id, name='tf-1',
-                           direction='BOTH', source_port=None):
+                           direction='BOTH', source_port=None,
+                           vlan_filter=None):
         source_port = source_port or _uuid()
         return {"tap_flow": {"name": name,
                              "tenant_id": self.tenant_id,
                              "description": "test tap flow",
                              "tap_service_id": tap_service_id,
                              "source_port": source_port,
-                             "direction": direction}}
+                             "direction": direction,
+                             "vlan_filter": vlan_filter}}
 
     def _get_tap_service(self, tap_service_id):
         """Helper method to retrieve tap service."""
@@ -179,6 +182,25 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         self.assertEqual(tf_name, tf['name'])
         self.assertEqual(tf_direction, tf['direction'])
         self.assertEqual(tf_source_port, tf['source_port'])
+
+    def test_tap_flow_create_with_vlan_filter(self):
+        """Test to create a tap flow (with vlan_filter) in the database."""
+        ts_data = self._get_tap_service_data()
+        ts = self._create_tap_service(ts_data)
+        tf_name = 'test-tap-flow'
+        tf_direction = 'IN'
+        tf_source_port = _uuid()
+        tf_vlan_filter = '9-18,27,36-45'
+        tf_data = self._get_tap_flow_data(tap_service_id=ts['id'],
+                                          name=tf_name,
+                                          source_port=tf_source_port,
+                                          direction=tf_direction,
+                                          vlan_filter=tf_vlan_filter)
+        tf = self._create_tap_flow(tf_data)
+        self.assertEqual(tf_name, tf['name'])
+        self.assertEqual(tf_direction, tf['direction'])
+        self.assertEqual(tf_source_port, tf['source_port'])
+        self.assertEqual(tf_vlan_filter, tf['vlan_filter'])
 
     def test_tap_flow_list(self):
         """Test to retrieve all tap flows from the database."""
