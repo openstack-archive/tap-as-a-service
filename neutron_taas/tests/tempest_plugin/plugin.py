@@ -1,3 +1,4 @@
+# Copyright (c) 2018 AT&T Corporation.
 # Copyright (c) 2015 Midokura SARL
 # All Rights Reserved.
 #
@@ -17,10 +18,13 @@ import os
 
 from tempest.test_discover import plugins
 
+from neutron_taas.tests.tempest_plugin import config as project_config
+
 
 class NeutronTaaSPlugin(plugins.TempestPlugin):
     def get_opt_lists(self):
-        return []
+        return [(project_config.TaasPluginOptGroup.name,
+                 project_config.TaaSPluginOptions)]
 
     def load_tests(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -33,4 +37,6 @@ class NeutronTaaSPlugin(plugins.TempestPlugin):
         return (test_dir, top_level_dir)
 
     def register_opts(self, conf):
-        return
+        conf.register_group(project_config.TaasPluginOptGroup)
+        conf.register_opts(project_config.TaaSPluginOptions,
+                           project_config.TaasPluginOptGroup)
