@@ -49,6 +49,18 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=self.tf_port['id'])
 
+    @decorators.idempotent_id('897a0aaf-1b55-4ea8-9d9f-1bc0fd09cb60')
+    @utils.requires_ext(extension='taas-vlan-filter', service='network')
+    def test_create_tap_service_and_flow_vlan_filter(self):
+        """create tap service with vlan_filter
+
+        Test create tap service with additional vlan_filter argument.
+        """
+        tap_service = self.create_tap_service(port_id=self.ts_port['id'])
+        self.create_tap_flow(tap_service_id=tap_service['id'],
+                             direction='BOTH', source_port=self.tf_port['id'],
+                             vlan_filter='189,279,999-1008')
+
     @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
     def test_delete_tap_resources_after_ts_port_delete(self):
         """delete tap resources after ts port delete
