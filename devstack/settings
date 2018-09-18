@@ -2,5 +2,5 @@
 ABSOLUTE_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
 TAAS_PLUGIN_PATH=$ABSOLUTE_PATH/..
 TAAS_PLUGIN_CONF_FILE="/etc/neutron/taas_plugin.ini"
-TAAS_OVS_AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-taas-openvswitch-agent"
-TAAS_OVS_AGENT_CONF_FILE="/etc/neutron/taas.ini"
+TAAS_AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-taas-agent"
+TAAS_AGENT_CONF_FILE="/etc/neutron/taas.ini"
