@@ -1,3 +1,4 @@
+# Copyright (C) 2018 AT&T
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
 #
@@ -15,35 +16,54 @@
 
 
 from neutron import manager
+from neutron_taas.services.taas.drivers.linux \
+    import ovs_constants as taas_ovs_consts
 
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
 
+from neutron_lib import context as neutron_context
 from neutron_lib import rpc as n_rpc
 from oslo_config import cfg
 from oslo_log import log as logging
+import oslo_messaging as messaging
 from oslo_service import service
 
 LOG = logging.getLogger(__name__)
 
 
-class TaasOvsPluginApi(api.TaasPluginApiMixin):
-    # Currently there are not any APIs from the the agent towards plugin
+class TaasPluginApi(api.TaasPluginApiMixin):
 
     def __init__(self, topic, host):
-        super(TaasOvsPluginApi, self).__init__(topic, host)
+        super(TaasPluginApi, self).__init__(topic, host)
+        target = messaging.Target(topic=topic, version='1.0')
+        self.client = n_rpc.get_client(target)
+        return
+
+    def sync_tap_resources(self, sync_tap_res, host):
+        """Send Rpc to plugin to recreate pre-existing tap resources."""
+        LOG.debug("In RPC Call for Sync Tap Resources: Host=%s, MSG=%s" %
+                  (host, sync_tap_res))
+
+        context = neutron_context.get_admin_context()
+
+        cctxt = self.client.prepare(fanout=False)
+        cctxt.cast(context, 'sync_tap_resources', sync_tap_res=sync_tap_res,
+                   host=host)
+
         return
 
 
-class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
+class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
 
     def __init__(self, conf, driver_type):
-        LOG.debug("TaaS OVS Agent initialize called")
+
+        LOG.debug("TaaS Agent initialize called")
 
         self.conf = conf
         self.driver_type = driver_type
 
-        super(TaasOvsAgentRpcCallback, self).__init__()
+        super(TaasAgentRpcCallback, self).__init__()
 
     def initialize(self):
         self.taas_driver = manager.NeutronManager.load_class_for_provider(
@@ -52,7 +72,7 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         self.taas_driver.initialize()
 
         self._taas_rpc_setup()
-        TaasOvsAgentService(self).start()
+        TaasAgentService(self).start(self.taas_plugin_rpc, self.conf.host)
 
     def consume_api(self, agent_api):
         self.agent_api = agent_api
@@ -104,6 +124,9 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
 
     def delete_tap_flow(self, context, tap_flow_msg, host):
         if host != self.conf.host:
+            LOG.debug("RPC Call for Delete Tap Flow. Host value [%s]"
+                      "(received in RPC) doesn't match the host value "
+                      "stored in agent [%s]" % (host, self.conf.host))
             return
         LOG.debug("In RPC Call for Delete Tap Flow: MSG=%s" % tap_flow_msg)
 
@@ -114,7 +137,7 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
 
     def _taas_rpc_setup(self):
         # setup RPC to msg taas plugin
-        self.taas_plugin_rpc = TaasOvsPluginApi(
+        self.taas_plugin_rpc = TaasPluginApi(
             topics.TAAS_PLUGIN, self.conf.host)
 
         endpoints = [self]
@@ -123,22 +146,31 @@ class TaasOvsAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         conn.consume_in_threads()
 
     def periodic_tasks(self):
-        #
-        # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
-        # to ensure all existing tunnel ports are included.
-        #
-        self.taas_driver.update_tunnel_flood_flow()
+        return self._invoke_driver_for_plugin_api(
+            context=None,
+            args=None,
+            func_name='periodic_tasks')
+
+    def get_driver_type(self):
+        return self.driver_type
 
 
-class TaasOvsAgentService(service.Service):
+class TaasAgentService(service.Service):
     def __init__(self, driver):
-        super(TaasOvsAgentService, self).__init__()
+        super(TaasAgentService, self).__init__()
         self.driver = driver
 
-    def start(self):
-        super(TaasOvsAgentService, self).start()
-        self.tg.add_timer(
-            int(cfg.CONF.taas_agent_periodic_interval),
-            self.driver.periodic_tasks,
-            None
-        )
+    def start(self, taas_plugin_rpc, host):
+        super(TaasAgentService, self).start()
+
+        if self.driver.get_driver_type() == \
+                taas_ovs_consts.EXTENSION_DRIVER_TYPE:
+            self.tg.add_timer(
+                int(cfg.CONF.taas_agent_periodic_interval),
+                self.driver.periodic_tasks,
+                None
+            )
+
+        # Indicate the TaaS plugin to recreate the taas resources
+        rpc_msg = {'host_id': host}
+        taas_plugin_rpc.sync_tap_resources(rpc_msg, host)
