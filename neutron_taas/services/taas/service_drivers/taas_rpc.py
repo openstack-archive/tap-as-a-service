@@ -1,3 +1,4 @@
+# Copyright (C) 2018 AT&T
 # Copyright (C) 2016 Midokura SARL.
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
@@ -15,7 +16,11 @@
 # under the License.
 
 from neutron.common import rpc as n_rpc
+from neutron_lib.api.definitions import portbindings
+from neutron_lib import constants
 from neutron_lib import exceptions as n_exc
+
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.common import topics
 from neutron_taas.services.taas import service_drivers
 from neutron_taas.services.taas.service_drivers import taas_agent_api
@@ -125,12 +130,19 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
+        # Extract the tap-service port
+        ts = self.service_plugin.get_tap_service(context._plugin_context,
+                                                 tf['tap_service_id'])
+        ts_port = self.service_plugin._get_port_details(
+            context._plugin_context, ts['port_id'])
+
         # Send RPC message to both the source port host and
         # tap service(destination) port host
         rpc_msg = {'tap_flow': tf,
                    'port_mac': port_mac,
                    'taas_id': taas_id,
-                   'port': port}
+                   'port': port,
+                   'tap_service_port': ts_port}
 
         self.agent_rpc.create_tap_flow(context._plugin_context, rpc_msg, host)
         return
@@ -147,12 +159,59 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
+        # Extract the tap-service port
+        ts = self.service_plugin.get_tap_service(context._plugin_context,
+                                                 tf['tap_service_id'])
+        ts_port = self.service_plugin._get_port_details(
+            context._plugin_context, ts['port_id'])
+
+        src_vlans_list = []
+        vlan_filter_list = []
+
+        if port.get(portbindings.VNIC_TYPE) == portbindings.VNIC_DIRECT:
+            # Get all the tap Flows that are associated with the Tap service
+            active_tfs = self.service_plugin.get_tap_flows(
+                context._plugin_context,
+                filters={'tap_service_id': [tf['tap_service_id']],
+                         'status': [constants.ACTIVE]},
+                fields=['source_port', 'vlan_filter'])
+
+            for tap_flow in active_tfs:
+                source_port = self.service_plugin._get_port_details(
+                    context._plugin_context, tap_flow['source_port'])
+
+                LOG.debug("taas: active TF's source_port %(source_port)s",
+                          {'source_port': source_port})
+
+                src_vlans = ""
+                if source_port.get(portbindings.VIF_DETAILS):
+                    src_vlans = \
+                        source_port[portbindings.VIF_DETAILS].get('VIF_DETAILS_VLAN')
+
+                # If no VLAN filter configured on source port,
+                # then include all vlans
+                if not src_vlans:
+                    src_vlans = taas_consts.VLAN_RANGE
+
+                src_vlans_list.append(src_vlans)
+
+                vlan_filter = tap_flow['vlan_filter']
+                # If no VLAN filter configured for tap-flow,
+                # then include all vlans
+                if not vlan_filter:
+                    vlan_filter = taas_consts.VLAN_RANGE
+
+                vlan_filter_list.append(vlan_filter)
+
         # Send RPC message to both the source port host and
         # tap service(destination) port host
         rpc_msg = {'tap_flow': tf,
                    'port_mac': port_mac,
                    'taas_id': taas_id,
-                   'port': port}
+                   'port': port,
+                   'tap_service_port': ts_port,
+                   'source_vlans_list': src_vlans_list,
+                   'vlan_filter_list': vlan_filter_list}
 
         self.agent_rpc.delete_tap_flow(context._plugin_context, rpc_msg, host)
         return
