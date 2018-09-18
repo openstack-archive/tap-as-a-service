@@ -21,6 +21,7 @@ from oslo_utils import uuidutils
 from neutron.tests.unit.api.v2 import test_base as test_api_v2
 from neutron.tests.unit.extensions import base as test_api_v2_extension
 
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.extensions import taas as taas_ext
 
 _uuid = uuidutils.generate_uuid
@@ -83,6 +84,7 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             'tap_service_id': _uuid(),
             'source_port': _uuid(),
             'project_id': tenant_id,
+            'vlan_filter': taas_consts.VLAN_RANGE,
         }
         data = {'tap_flow': tap_flow_data}
         expected_ret_val = copy.copy(data['tap_flow'])

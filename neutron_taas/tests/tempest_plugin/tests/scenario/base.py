@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from neutron_taas.tests.tempest_plugin.tests import taas_client
 from neutron_taas.tests.tempest_plugin.tests.scenario import manager
 
 
-class TaaSScenarioTest(manager.NetworkScenarioTest):
+class TaaSScenarioTest(taas_client.TaaSClientMixin,
+                       manager.NetworkScenarioTest):
     pass
