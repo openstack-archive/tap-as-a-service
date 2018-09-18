@@ -1,11 +1,12 @@
-# Copyright 2017 FUJITSU LABORATORIES LTD.
-
+# Copyright (C) 2018 AT&T
+# All Rights Reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
-
+#
 #         http://www.apache.org/licenses/LICENSE-2.0
-
+#
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -13,28 +14,30 @@
 #    under the License.
 
 import copy
+
 import mock
+from neutron_taas.common import constants as taas_consts
+from neutron_taas.extensions import taas as taas_ext
+from neutron_taas.extensions import vlan_filter as vlan_filter_ext
+from neutron_taas.tests.unit.extensions import test_taas as test_taas_ext
+from oslo_utils import uuidutils
 from webob import exc
 
-from oslo_utils import uuidutils
-
 from neutron.tests.unit.api.v2 import test_base as test_api_v2
-from neutron.tests.unit.extensions import base as test_api_v2_extension
+import webtest
 
-from neutron_taas.extensions import taas as taas_ext
 
 _uuid = uuidutils.generate_uuid
 _get_path = test_api_v2._get_path
 
-TAP_SERVICE_PATH = 'taas/tap_services'
-TAP_FLOW_PATH = 'taas/tap_flows'
 
-
-class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
-    fmt = 'json'
-
+class VlanFilterExtensionTestCase(test_taas_ext.TaasExtensionTestCase):
     def setUp(self):
-        super(TaasExtensionTestCase, self).setUp()
+        super(test_taas_ext.TaasExtensionTestCase, self).setUp()
+
+        attr_map = taas_ext.RESOURCE_ATTRIBUTE_MAP
+        attr_map['tap_flows'].update(
+            vlan_filter_ext.EXTENDED_ATTRIBUTES_2_0['tap_flows'])
         self.setup_extension(
             'neutron_taas.extensions.taas.TaasPluginBase',
             'TAAS',
@@ -43,39 +46,14 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             plural_mappings={}
         )
 
-    def test_create_tap_service(self):
-        tenant_id = _uuid()
-        tap_service_data = {
-            'tenant_id': tenant_id,
-            'name': 'MyTap',
-            'description': 'This is my tap service',
-            'port_id': _uuid(),
-            'project_id': tenant_id,
-        }
-        data = {'tap_service': tap_service_data}
-        expected_ret_val = copy.copy(data['tap_service'])
-        expected_ret_val.update({'id': _uuid()})
-        instance = self.plugin.return_value
-        instance.create_tap_service.return_value = expected_ret_val
-
-        res = self.api.post(_get_path(TAP_SERVICE_PATH, fmt=self.fmt),
-                            self.serialize(data),
-                            content_type='application/%s' % self.fmt)
-        instance.create_tap_service.assert_called_with(
-            mock.ANY,
-            tap_service=data)
-        self.assertEqual(exc.HTTPCreated.code, res.status_int)
-        res = self.deserialize(res)
-        self.assertIn('tap_service', res)
-        self.assertEqual(expected_ret_val, res['tap_service'])
-
-    def test_delete_tap_service(self):
-        self._test_entity_delete('tap_service')
-
     def _get_expected_tap_flow(self, data):
+        ret = super(VlanFilterExtensionTestCase,
+                    self)._get_expected_tap_flow(data)
+        ret['tap_flow'].update(
+            vlan_filter=data['tap_flow'].get('vlan_filter', None))
         return ret
 
-    def test_create_tap_flow(self):
+    def test_create_tap_flow_with_vlan_filter(self):
         tenant_id = _uuid()
         tap_flow_data = {
             'tenant_id': tenant_id,
@@ -85,6 +63,7 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             'tap_service_id': _uuid(),
             'source_port': _uuid(),
             'project_id': tenant_id,
+            'vlan_filter': taas_consts.VLAN_RANGE,
         }
         data = {'tap_flow': tap_flow_data}
         expected_data = self._get_expected_tap_flow(data)
@@ -93,9 +72,10 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
         instance = self.plugin.return_value
         instance.create_tap_flow.return_value = expected_ret_val
 
-        res = self.api.post(_get_path(TAP_FLOW_PATH, fmt=self.fmt),
-                            self.serialize(data),
-                            content_type='application/%s' % self.fmt)
+        res = self.api.post(
+            _get_path(test_taas_ext.TAP_FLOW_PATH, fmt=self.fmt),
+            self.serialize(data),
+            content_type='application/%s' % self.fmt)
         instance.create_tap_flow.assert_called_with(
             mock.ANY,
             tap_flow=expected_data)
@@ -104,5 +84,22 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
         self.assertIn('tap_flow', res)
         self.assertEqual(expected_ret_val, res['tap_flow'])
 
-    def test_delete_tap_flow(self):
-        self._test_entity_delete('tap_flow')
+    def test_create_tap_flow_invalid_vlan_filter_value(self):
+        tenant_id = _uuid()
+        tap_flow_data = {
+            'tenant_id': tenant_id,
+            'name': 'MyTapFlow',
+            'description': 'This is my tap flow',
+            'direction': 'BOTH',
+            'tap_service_id': _uuid(),
+            'source_port': _uuid(),
+            'project_id': tenant_id,
+            'vlan_filter': '10-25,',
+        }
+        data = {'tap_flow': tap_flow_data}
+        self.assertRaises(
+            webtest.app.AppError,
+            self.api.post,
+            _get_path(test_taas_ext.TAP_FLOW_PATH, fmt=self.fmt),
+            self.serialize(data),
+            content_type='application/%s' % self.fmt)
