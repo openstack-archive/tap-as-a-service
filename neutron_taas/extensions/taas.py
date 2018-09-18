@@ -1,3 +1,4 @@
+# Copyright (C) 2018 AT&T
 # Copyright (C) 2015 Ericsson AB
 # Copyright (c) 2015 Gigamon
 #
@@ -58,6 +59,20 @@ class TapServiceNotBelongToTenant(qexception.NotAuthorized):
 class TapServiceLimitReached(qexception.OverQuota):
     message = _("Reached the maximum quota for Tap Services")
 
+
+class SriovNicSwitchDriverInvocationError(qexception.Invalid):
+    message = _("Failed to invoke SR-IOV TaaS driver command: "
+                "%(tap_service_pf_device)s, %(tap_service_vf_index)s, "
+                "%(source_vf_index)s, %(vlan_filter)s, "
+                "%(vf_to_vf_all_vlans)s, %(direction)s")
+
+
+class PciDeviceNotFoundById(qexception.NotFound):
+    message = _("PCI device %(id)s not found")
+
+
+class PciSlotNotFound(qexception.NotFound):
+    message = _("PCI slot (Port-id, MAC): %(port_id)s, %(mac)s not found")
 
 direction_enum = ['IN', 'OUT', 'BOTH']
 
