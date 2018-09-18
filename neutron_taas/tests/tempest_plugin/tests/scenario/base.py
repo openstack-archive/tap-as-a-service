@@ -14,7 +14,9 @@
 #    under the License.
 
 from neutron_taas.tests.tempest_plugin.tests.scenario import manager
+from neutron_taas.tests.tempest_plugin.tests import taas_client
 
 
-class TaaSScenarioTest(manager.NetworkScenarioTest):
+class TaaSScenarioTest(taas_client.TaaSClientMixin,
+                       manager.NetworkScenarioTest):
     pass
