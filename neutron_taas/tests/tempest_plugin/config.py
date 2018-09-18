@@ -1,5 +1,4 @@
-# Copyright (C) 2018 AT&T
-# Copyright (C) 2015 Midokura SARL.
+# Copyright (c) 2018 AT&T Corporation
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,7 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-TAAS = 'TAAS'
+from oslo_config import cfg
+from tempest import config
 
-# Complete VLAN Id Range
-VLAN_RANGE = '0-4095'
+
+CONF = config.CONF
+
+
+TaasPluginOptGroup = cfg.OptGroup(name='taas_plugin_options',
+                                  title='TaaS Tempest Plugin Config')
+
+TaaSPluginOptions = [
+    cfg.ListOpt('sriov_vlans',
+                default=[],
+                help='List of VLANs to be configured for sriov network.'),
+    cfg.ListOpt('vlan_filter',
+                default=[],
+                help='List of VLANs to be mirrored for a Tap-Flow.'),
+]
