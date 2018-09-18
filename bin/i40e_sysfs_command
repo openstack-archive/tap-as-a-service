@@ -1,5 +1,6 @@
-# Copyright (C) 2018 AT&T
-# Copyright (C) 2015 Midokura SARL.
+#!/usr/bin/env bash
+
+# Copyright (c) 2018 AT&T Corporation
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,7 +15,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-TAAS = 'TAAS'
+: ${1?"Usage: $0 <add/rem> <vlan_ranges_string> <sysfs_path>"}
+: ${2?"Usage: $0 <add/rem> <vlan_ranges_string> <sysfs_path>"}
+: ${3?"Usage: $0 <add/rem> <vlan_ranges_string> <sysfs_path>"}
 
-# Complete VLAN Id Range
-VLAN_RANGE = '0-4095'
+echo $1 $2 > $3
+
