@@ -35,10 +35,9 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
 
     def setUp(self):
         super(TaasExtensionTestCase, self).setUp()
-        self._setUpExtension(
+        self.setup_extension(
             'neutron_taas.extensions.taas.TaasPluginBase',
             'TAAS',
-            taas_ext.RESOURCE_ATTRIBUTE_MAP,
             taas_ext.Taas,
             'taas',
             plural_mappings={}
