@@ -21,7 +21,8 @@ from neutron.conf.agent import common
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
-import neutron_taas.services.taas.drivers.linux.ovs_constants as taas_ovs_consts
+import neutron_taas.services.taas.drivers.linux.ovs_constants \
+    as taas_ovs_consts
 import neutron_taas.services.taas.drivers.linux.ovs_utils as taas_ovs_utils
 from oslo_config import cfg
 from oslo_log import log as logging
