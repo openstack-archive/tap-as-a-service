@@ -36,6 +36,7 @@ neutron_milestone = [
     migration.OCATA,
     migration.PIKE,
     migration.QUEENS,
+    migration.ROCKY,
 ]
 
 
