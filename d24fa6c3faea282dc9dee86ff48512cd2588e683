@@ -1,0 +1,9 @@
+Code-Review+1: Reedip <rbanerje@redhat.com>
+Code-Review+2: Kazuhiro Suzuki <kaz@jp.fujitsu.com>
+Workflow+1: YAMAMOTO Takashi <yamamoto@midokura.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 05 Nov 2018 06:33:07 +0000
+Reviewed-on: https://review.openstack.org/609912
+Project: openstack/tap-as-a-service
+Branch: refs/heads/stable/rocky
