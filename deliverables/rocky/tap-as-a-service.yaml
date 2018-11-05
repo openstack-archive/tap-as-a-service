@@ -1,0 +1,11 @@
+---
+launchpad: tap-as-a-service
+type: other
+releases:
+  - projects:
+      - hash: 57dfbdb8ebbf8d42d0715f7753626ed2ddf38cef
+        repo: openstack/tap-as-a-service
+    version: 4.0.0
+branches:
+  - name: stable/rocky
+    location: 4.0.0
