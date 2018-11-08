@@ -14,12 +14,12 @@
 # under the License.
 
 
-from neutron.common import rpc as n_rpc
 from neutron import manager
 
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
 
+from neutron_lib import rpc as n_rpc
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_service import service
