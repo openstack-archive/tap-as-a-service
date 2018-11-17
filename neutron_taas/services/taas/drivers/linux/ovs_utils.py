@@ -17,7 +17,10 @@
 #
 # This class implements a simple key-value manager that can support
 # the following relationships.
+
+# test patch don't merge
 #
+
 # - Multiple values may be affiliated with a key.
 # - A value may be affiliated with multiple keys.
 # - A value may be affiliated with a key multiple times.
