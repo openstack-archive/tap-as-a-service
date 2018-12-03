@@ -24,7 +24,7 @@ class TapServicesClient(base.BaseNetworkClient):
         return self.create_resource(uri, post_data)
 
     def update_tap_service(self, tap_service_id, **kwargs):
-        uri = '/taas/tap_services'
+        uri = '/taas/tap_services/%s' % tap_service_id
         post_data = {'tap_service': kwargs}
         return self.update_resource(uri, post_data)
 
@@ -49,7 +49,7 @@ class TapFlowsClient(base.BaseNetworkClient):
         return self.create_resource(uri, post_data)
 
     def update_tap_flow(self, tap_flow_id, **kwargs):
-        uri = '/taas/tap_flows'
+        uri = '/taas/tap_flows/%s' % tap_flow_id
         post_data = {'tap_flow': kwargs}
         return self.update_resource(uri, post_data)
 
