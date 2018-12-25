@@ -21,6 +21,7 @@ from sqlalchemy.orm import exc
 from neutron.db import common_db_mixin as base_db
 from neutron_lib import constants
 from neutron_lib.db import model_base
+from neutron_lib.db import model_query
 from neutron_lib.plugins import directory
 from neutron_taas.extensions import taas
 from oslo_config import cfg
@@ -91,7 +92,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
     def _get_tap_id_association(self, context, tap_service_id):
         try:
-            query = self._model_query(context, TapIdAssociation)
+            query = model_query.query_with_hooks(context, TapIdAssociation)
             return query.filter(TapIdAssociation.tap_service_id ==
                                 tap_service_id).one()
         except exc.NoResultFound:
