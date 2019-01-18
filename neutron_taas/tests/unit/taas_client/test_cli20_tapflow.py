@@ -52,7 +52,7 @@ class CLITestV20TapFlowJSON(test_cli20.CLITestV20Base):
             found = neutron_shell.command_manager.find_command([cmd_name])
             self.assertEqual(cmd_class, found[0])
 
-    def _test_create_tap_flow(self, port_id="random_port",
+    def _test_create_tap_flow(self, port="random_port",
                               service_id="random_service",
                               direction="BOTH", arg_attr=None,
                               name_attr=None, val_attr=None,
@@ -65,11 +65,11 @@ class CLITestV20TapFlowJSON(test_cli20.CLITestV20Base):
         tenant_id = 'my-tenant'
         my_id = 'my-id'
         args = ['--tenant-id', tenant_id,
-                '--port', port_id,
+                '--port', port,
                 '--tap-service', service_id,
                 '--direction', direction] + arg_attr
-        pos_names = ['source_port', 'tap_service_id', 'direction'] + name_attr
-        pos_values = [port_id, service_id, direction] + val_attr
+        pos_names = ['port', 'tap_service_id', 'direction'] + name_attr
+        pos_values = [port, service_id, direction] + val_attr
         self._test_create_resource(self.resource, cmd, name, my_id, args,
                                    pos_names, pos_values,
                                    tenant_id=tenant_id)

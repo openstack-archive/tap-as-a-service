@@ -49,7 +49,7 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             'tenant_id': tenant_id,
             'name': 'MyTap',
             'description': 'This is my tap service',
-            'port_id': _uuid(),
+            'port': _uuid(),
             'project_id': tenant_id,
         }
         data = {'tap_service': tap_service_data}
@@ -80,7 +80,7 @@ class TaasExtensionTestCase(test_api_v2_extension.ExtensionTestCase):
             'description': 'This is my tap flow',
             'direction': 'BOTH',
             'tap_service_id': _uuid(),
-            'source_port': _uuid(),
+            'port': _uuid(),
             'project_id': tenant_id,
         }
         data = {'tap_flow': tap_flow_data}
