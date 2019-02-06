@@ -1,0 +1,8 @@
+---
+prelude: >
+    Neutron TaaS Plugin: deleting a port associated with some tap resources
+    (tap-service or tap-flow) shall now cascade delete those associated tap
+    resources as well.
+issues:
+  - |
+    Fixes bug `1814937 <https://bugs.launchpad.net/tap-as-a-service/+bug/1814937>`_.
