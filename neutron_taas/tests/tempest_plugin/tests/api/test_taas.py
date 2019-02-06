@@ -16,6 +16,7 @@
 from tempest.common import utils
 from tempest import config
 from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
 
@@ -40,13 +41,23 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
                              direction='BOTH', source_port=port['id'])
 
     @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
-    def test_delete_tap_service_after_delete_port(self):
+    def test_delete_tap_service_and_flow_after_delete_port(self):
         network = self.create_network()
         port = self.create_port(network)
         tap_service = self.create_tap_service(port_id=port['id'])
-        # delete port
+        tap_flow = self.create_tap_flow(tap_service_id=tap_service['id'],
+                                        direction='BOTH',
+                                        source_port=port['id'])
+        # delete port; it shall also delete the associated tap-service
         self.ports_client.delete_port(port['id'])
-        self.tap_services_client.delete_tap_service(tap_service['id'])
+        # Attempt tap-service deletion; it should throw not found exception.
+        self.assertRaises(lib_exc.NotFound,
+                          self.tap_services_client.delete_tap_service,
+                          tap_service['id'])
+        # Attempt tap-flow deletion; it should throw not found exception.
+        self.assertRaises(lib_exc.NotFound,
+                          self.tap_flows_client.delete_tap_flow,
+                          tap_flow['id'])
 
     @decorators.idempotent_id('687089b8-b045-496d-86bf-030b380039d1')
     def test_update_tap_service(self):
