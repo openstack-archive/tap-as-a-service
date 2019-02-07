@@ -19,11 +19,11 @@ import mock
 import testtools
 
 from neutron_lib import context
+from neutron_lib import rpc as n_rpc
 from neutron_lib.utils import net as n_utils
 from oslo_config import cfg
 from oslo_utils import uuidutils
 
-import neutron.common.rpc as n_rpc
 from neutron.tests.unit import testlib_api
 
 import neutron_taas.db.taas_db  # noqa
