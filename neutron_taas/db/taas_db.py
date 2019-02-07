@@ -18,10 +18,10 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm import exc
 
-from neutron.db import common_db_mixin as base_db
 from neutron_lib import constants
 from neutron_lib.db import model_base
 from neutron_lib.db import model_query
+from neutron_lib.db import utils as db_utils
 from neutron_lib.plugins import directory
 from neutron_taas.extensions import taas
 from oslo_config import cfg
@@ -79,14 +79,14 @@ class TapIdAssociation(model_base.BASEV2):
         primaryjoin='TapService.id==TapIdAssociation.tap_service_id')
 
 
-class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
+class Taas_db_Mixin(taas.TaasPluginBase):
 
     def _core_plugin(self):
         return directory.get_plugin()
 
     def _get_tap_service(self, context, id):
         try:
-            return self._get_by_id(context, TapService, id)
+            return model_query.get_by_id(context, TapService, id)
         except exc.NoResultFound:
             raise taas.TapServiceNotFound(tap_id=id)
 
@@ -100,7 +100,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
 
     def _get_tap_flow(self, context, id):
         try:
-            return self._get_by_id(context, TapFlow, id)
+            return model_query.get_by_id(context, TapFlow, id)
         except Exception:
             raise taas.TapFlowNotFound(flow_id=id)
 
@@ -112,7 +112,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'port_id': tap_service['port_id'],
                'status': tap_service['status']}
 
-        return self._fields(res, fields)
+        return db_utils.resource_fields(res, fields)
 
     def _make_tap_id_association_dict(self, tap_id_association):
         res = {'tap_service_id': tap_id_association['tap_service_id'],
@@ -130,7 +130,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'direction': tap_flow['direction'],
                'status': tap_flow['status']}
 
-        return self._fields(res, fields)
+        return db_utils.resource_fields(res, fields)
 
     def create_tap_service(self, context, tap_service):
         LOG.debug("create_tap_service() called")
@@ -252,17 +252,17 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                          sorts=None, limit=None, marker=None,
                          page_reverse=False):
         LOG.debug("get_tap_services() called")
-        return self._get_collection(context, TapService,
-                                    self._make_tap_service_dict,
-                                    filters=filters, fields=fields)
+        return model_query.get_collection(context, TapService,
+                                          self._make_tap_service_dict,
+                                          filters=filters, fields=fields)
 
     def get_tap_flows(self, context, filters=None, fields=None,
                       sorts=None, limit=None, marker=None,
                       page_reverse=False):
         LOG.debug("get_tap_flows() called")
-        return self._get_collection(context, TapFlow,
-                                    self._make_tap_flow_dict,
-                                    filters=filters, fields=fields)
+        return model_query.get_collection(context, TapFlow,
+                                          self._make_tap_flow_dict,
+                                          filters=filters, fields=fields)
 
     def _get_port_details(self, context, port_id):
         with context.session.begin(subtransactions=True):
