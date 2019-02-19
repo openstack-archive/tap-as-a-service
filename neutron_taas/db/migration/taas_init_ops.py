@@ -32,7 +32,7 @@ def upgrade():
         sa.Column('tenant_id', sa.String(length=255), nullable=True),
         sa.Column('name', sa.String(length=255), nullable=True),
         sa.Column('description', sa.String(length=1024), nullable=True),
-        sa.Column('port_id', sa.String(36), nullable=False),
+        sa.Column('port', sa.String(36), nullable=False),
         sa.Column('network_id', sa.String(36), nullable=True))
 
     op.create_table(
@@ -45,7 +45,7 @@ def upgrade():
         sa.Column('tap_service_id', sa.String(length=36),
                   sa.ForeignKey("tap_services.id",
                                 ondelete="CASCADE"), nullable=False),
-        sa.Column('source_port', sa.String(length=36), nullable=False),
+        sa.Column('port', sa.String(length=36), nullable=False),
         sa.Column('direction', direction_types, nullable=False))
 
     op.create_table(

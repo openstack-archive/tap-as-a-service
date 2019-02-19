@@ -35,15 +35,15 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     def test_create_tap_service_and_flow(self):
         network = self.create_network()
         port = self.create_port(network)
-        tap_service = self.create_tap_service(port_id=port['id'])
+        tap_service = self.create_tap_service(port=port['id'])
         self.create_tap_flow(tap_service_id=tap_service['id'],
-                             direction='BOTH', source_port=port['id'])
+                             direction='BOTH', port=port['id'])
 
     @decorators.idempotent_id('d7a2115d-16b4-41cf-95a6-dcebc3682b24')
     def test_delete_tap_service_after_delete_port(self):
         network = self.create_network()
         port = self.create_port(network)
-        tap_service = self.create_tap_service(port_id=port['id'])
+        tap_service = self.create_tap_service(port=port['id'])
         # delete port
         self.ports_client.delete_port(port['id'])
         self.tap_services_client.delete_tap_service(tap_service['id'])
@@ -52,7 +52,7 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     def test_update_tap_service(self):
         network = self.create_network()
         port = self.create_port(network)
-        tap_service = self.create_tap_service(port_id=port['id'])
+        tap_service = self.create_tap_service(port=port['id'])
         # Update description of the tap service
         self.update_tap_service(
             tap_service['id'],
@@ -62,10 +62,10 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
     def test_update_tap_flow(self):
         network = self.create_network()
         port = self.create_port(network)
-        tap_service = self.create_tap_service(port_id=port['id'])
+        tap_service = self.create_tap_service(port=port['id'])
         tap_flow = self.create_tap_flow(
             tap_service_id=tap_service['id'],
-            direction='BOTH', source_port=port['id'])
+            direction='BOTH', port=port['id'])
         # Update description of the tap flow
         self.update_tap_flow(
             tap_flow['id'],

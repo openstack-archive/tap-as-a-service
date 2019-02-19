@@ -38,21 +38,21 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         self.plugin = importutils.import_object(DB_PLUGIN_KLAAS)
         self.tenant_id = 'fake-tenant-id'
 
-    def _get_tap_service_data(self, name='ts-1', port_id=None):
-        port_id = port_id or _uuid()
+    def _get_tap_service_data(self, name='ts-1', port=None):
+        port_id = port or _uuid()
         return {"tap_service": {"name": name,
                                 "tenant_id": self.tenant_id,
                                 "description": "test tap service",
-                                "port_id": port_id}}
+                                "port": port_id}}
 
     def _get_tap_flow_data(self, tap_service_id, name='tf-1',
-                           direction='BOTH', source_port=None):
-        source_port = source_port or _uuid()
+                           direction='BOTH', port=None):
+        source_port = port or _uuid()
         return {"tap_flow": {"name": name,
                              "tenant_id": self.tenant_id,
                              "description": "test tap flow",
                              "tap_service_id": tap_service_id,
-                             "source_port": source_port,
+                             "port": source_port,
                              "direction": direction}}
 
     def _get_tap_service(self, tap_service_id):
@@ -119,10 +119,10 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         """Test to create a tap service in the database."""
         name = 'test-tap-service'
         port_id = _uuid()
-        data = self._get_tap_service_data(name=name, port_id=port_id)
+        data = self._get_tap_service_data(name=name, port=port_id)
         result = self._create_tap_service(data)
         self.assertEqual(name, result['name'])
-        self.assertEqual(port_id, result['port_id'])
+        self.assertEqual(port_id, result['port'])
 
     def test_tap_service_list(self):
         """Test to retrieve all tap services from the database."""
@@ -173,12 +173,12 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
         tf_source_port = _uuid()
         tf_data = self._get_tap_flow_data(tap_service_id=ts['id'],
                                           name=tf_name,
-                                          source_port=tf_source_port,
+                                          port=tf_source_port,
                                           direction=tf_direction)
         tf = self._create_tap_flow(tf_data)
         self.assertEqual(tf_name, tf['name'])
         self.assertEqual(tf_direction, tf['direction'])
-        self.assertEqual(tf_source_port, tf['source_port'])
+        self.assertEqual(tf_source_port, tf['port'])
 
     def test_tap_flow_list(self):
         """Test to retrieve all tap flows from the database."""

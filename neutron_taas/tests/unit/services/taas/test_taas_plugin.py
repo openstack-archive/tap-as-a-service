@@ -67,14 +67,14 @@ class TestTaasPlugin(testlib_api.SqlTestCase):
             'tenant_id': self._tenant_id,
             'name': 'MyTap',
             'description': 'This is my tap service',
-            'port_id': self._port_id,
+            'port': self._port_id,
             'project_id': self._project_id,
         }
         self._tap_flow = {
             'description': 'This is my tap flow',
             'direction': 'BOTH',
             'name': 'MyTapFlow',
-            'source_port': self._port_id,
+            'port': self._port_id,
             'tenant_id': self._tenant_id,
             'project_id': self._project_id,
         }
