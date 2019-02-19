@@ -136,16 +136,16 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
         LOG.debug("create_tap_service() called")
         t_s = tap_service['tap_service']
         tenant_id = t_s['tenant_id']
-        with context.session.begin(subtransactions=True):
-            tap_service_db = TapService(
-                id=uuidutils.generate_uuid(),
-                tenant_id=tenant_id,
-                name=t_s['name'],
-                description=t_s['description'],
-                port_id=t_s['port_id'],
-                status=constants.ACTIVE,
-            )
-            context.session.add(tap_service_db)
+
+        tap_service_db = TapService(
+            id=uuidutils.generate_uuid(),
+            tenant_id=tenant_id,
+            name=t_s['name'],
+            description=t_s['description'],
+            port_id=t_s['port_id'],
+            status=constants.ACTIVE,
+        )
+        context.session.add(tap_service_db)
 
         return self._make_tap_service_dict(tap_service_db)
 
@@ -199,18 +199,18 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
         tenant_id = t_f['tenant_id']
         # TODO(Vinay): Check for the tenant_id validation
         # TODO(Vinay): Check for the source port validation
-        with context.session.begin(subtransactions=True):
-            tap_flow_db = TapFlow(
-                id=uuidutils.generate_uuid(),
-                tenant_id=tenant_id,
-                name=t_f['name'],
-                description=t_f['description'],
-                tap_service_id=t_f['tap_service_id'],
-                source_port=t_f['source_port'],
-                direction=t_f['direction'],
-                status=constants.ACTIVE,
-            )
-            context.session.add(tap_flow_db)
+
+        tap_flow_db = TapFlow(
+            id=uuidutils.generate_uuid(),
+            tenant_id=tenant_id,
+            name=t_f['name'],
+            description=t_f['description'],
+            tap_service_id=t_f['tap_service_id'],
+            source_port=t_f['source_port'],
+            direction=t_f['direction'],
+            status=constants.ACTIVE,
+        )
+        context.session.add(tap_flow_db)
 
         return self._make_tap_flow_dict(tap_flow_db)
 
