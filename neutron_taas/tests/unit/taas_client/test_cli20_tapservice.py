@@ -52,7 +52,7 @@ class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base):
             found = neutron_shell.command_manager.find_command([cmd_name])
             self.assertEqual(cmd_class, found[0])
 
-    def _test_create_tap_service(self, port_id="random_port",
+    def _test_create_tap_service(self, port="random_port",
                                  name='',
                                  args_attr=None, position_names_attr=None,
                                  position_values_attr=None):
@@ -64,9 +64,9 @@ class CLITestV20TapServiceJSON(test_cli20.CLITestV20Base):
         tenant_id = 'my-tenant'
         my_id = 'my-id'
         args = ['--tenant-id', tenant_id,
-                '--port', port_id] + args_attr
-        position_names = ['port_id'] + position_names_attr
-        position_values = [port_id] + position_values_attr
+                '--port', port] + args_attr
+        position_names = ['port'] + position_names_attr
+        position_values = [port] + position_values_attr
         self._test_create_resource(self.resource, cmd, name, my_id, args,
                                    position_names, position_values,
                                    tenant_id=tenant_id)

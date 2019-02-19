@@ -38,7 +38,7 @@ class TapService(model_base.BASEV2, model_base.HasId,
     __tablename__ = 'tap_services'
     name = sa.Column(sa.String(255), nullable=True)
     description = sa.Column(sa.String(1024), nullable=True)
-    port_id = sa.Column(sa.String(36), nullable=False)
+    port = sa.Column(sa.String(36), nullable=False)
     status = sa.Column(sa.String(16), nullable=False,
                        server_default=constants.ACTIVE)
 
@@ -54,7 +54,7 @@ class TapFlow(model_base.BASEV2, model_base.HasId,
                                sa.ForeignKey("tap_services.id",
                                              ondelete="CASCADE"),
                                nullable=False)
-    source_port = sa.Column(sa.String(36), nullable=False)
+    port = sa.Column(sa.String(36), nullable=False)
     direction = sa.Column(sa.Enum('IN', 'OUT', 'BOTH',
                                   name='tapflows_direction'),
                           nullable=False)
@@ -109,7 +109,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'tenant_id': tap_service['tenant_id'],
                'name': tap_service['name'],
                'description': tap_service['description'],
-               'port_id': tap_service['port_id'],
+               'port': tap_service['port'],
                'status': tap_service['status']}
 
         return self._fields(res, fields)
@@ -126,7 +126,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'tap_service_id': tap_flow['tap_service_id'],
                'name': tap_flow['name'],
                'description': tap_flow['description'],
-               'source_port': tap_flow['source_port'],
+               'port': tap_flow['port'],
                'direction': tap_flow['direction'],
                'status': tap_flow['status']}
 
@@ -142,7 +142,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 tenant_id=tenant_id,
                 name=t_s['name'],
                 description=t_s['description'],
-                port_id=t_s['port_id'],
+                port=t_s['port'],
                 status=constants.ACTIVE,
             )
             context.session.add(tap_service_db)
@@ -206,7 +206,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 name=t_f['name'],
                 description=t_f['description'],
                 tap_service_id=t_f['tap_service_id'],
-                source_port=t_f['source_port'],
+                port=t_f['port'],
                 direction=t_f['direction'],
                 status=constants.ACTIVE,
             )

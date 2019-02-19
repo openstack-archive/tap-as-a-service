@@ -71,7 +71,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         tap_id_association = context.tap_id_association
         taas_vlan_id = tap_id_association['taas_id']
         port = self.service_plugin._get_port_details(context._plugin_context,
-                                                     ts['port_id'])
+                                                     ts['port'])
         host = port['binding:host_id']
 
         rpc_msg = {'tap_service': ts,
@@ -98,7 +98,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         try:
             port = self.service_plugin._get_port_details(
                 context._plugin_context,
-                ts['port_id'])
+                ts['port'])
             host = port['binding:host_id']
         except n_exc.PortNotFound:
             # if not found, we just pass to None
@@ -122,7 +122,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         taas_id = self._get_taas_id(context._plugin_context, tf)
         # Extract the host where the source port is located
         port = self.service_plugin._get_port_details(context._plugin_context,
-                                                     tf['source_port'])
+                                                     tf['port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
         # Send RPC message to both the source port host and
@@ -144,7 +144,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         taas_id = self._get_taas_id(context._plugin_context, tf)
         # Extract the host where the source port is located
         port = self.service_plugin._get_port_details(context._plugin_context,
-                                                     tf['source_port'])
+                                                     tf['port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
         # Send RPC message to both the source port host and

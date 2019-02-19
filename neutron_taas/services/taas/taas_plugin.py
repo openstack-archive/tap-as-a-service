@@ -68,7 +68,7 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
 
         t_s = tap_service['tap_service']
         tenant_id = t_s['tenant_id']
-        port_id = t_s['port_id']
+        port_id = t_s['port']
 
         # Get port details
         port = self._get_port_details(context, port_id)
