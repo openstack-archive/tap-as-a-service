@@ -1,0 +1,9 @@
+---
+prelude: >
+    Deleting a port associated with some tap resources (tap service or tap
+    flow) shall now cascade delete those associated tap resources as well.
+    It should be noted that this change alters the API behaviour in the sense
+    that earlier deleting a port did not clear the associated tap resources.
+issues:
+  - |
+    Fixes bug `1814937 <https://bugs.launchpad.net/tap-as-a-service/+bug/1814937>`_.
