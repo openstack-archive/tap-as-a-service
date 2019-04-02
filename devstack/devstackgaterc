@@ -37,6 +37,8 @@ r="$r(?:.*\[.*\bslow\b.*\])"
 # End list of exclusions.
 r="$r)"
 
-r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas\.).*$"
+r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas_tempest_plugin\.).*$"
 
+export DEVSTACK_LOCAL_CONFIG+=$'\n'"TEMPEST_PLUGINS=/opt/stack/new/tap-as-a-service-tempest-plugin"
 export DEVSTACK_GATE_TEMPEST_REGEX="$r"
+export DEVSTACK_GATE_TEMPEST_ALL_PLUGINS=0
