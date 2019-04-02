@@ -34,9 +34,14 @@ r="^(?!.*"
 # exclude the slow tag (part of the default for 'full')
 r="$r(?:.*\[.*\bslow\b.*\])"
 
+# bug 1814937
+r="$r|(?:^neutron_tempest_plugin\.tests\.api\.test_taas\.TaaSExtensionTestJSON\.test_delete_tap_resources_after_ts_port_delete)"
+
 # End list of exclusions.
 r="$r)"
 
-r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas\.).*$"
+r="$r(tempest\.(api.network\.|scenario.test_network)|neutron_taas_tempest_plugin\.).*$"
 
+export DEVSTACK_LOCAL_CONFIG+=$'\n'"TEMPEST_PLUGINS=/opt/stack/new/tap-as-a-service-tempest-plugin"
 export DEVSTACK_GATE_TEMPEST_REGEX="$r"
+export DEVSTACK_GATE_TEMPEST_ALL_PLUGINS=0
