@@ -15,6 +15,7 @@
     required-projects:
       - openstack-infra/devstack-gate
       - openstack/tap-as-a-service
+      - openstack/tap-as-a-service-tempest-plugin
       - openstack/tempest
     irrelevant-files:
       - ^(test-|)requirements.txt$
