@@ -1,6 +1,7 @@
 - project:
     templates:
-      - openstack-lower-constraints-jobs
+      - openstack-lower-constraints-jobs-rocky
+      - tap-as-a-service-tempest-plugin-jobs
     check:
       jobs:
         - tap-as-a-service-tempest-dsvm
