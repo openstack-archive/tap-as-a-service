@@ -1,5 +1,7 @@
 - project:
     name: openstack/tap-as-a-service
+    templates:
+      - tap-as-a-service-tempest-plugin-jobs-queens
     check:
       jobs:
         - tap-as-a-service-tempest-dsvm
