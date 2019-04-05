@@ -4,9 +4,11 @@
     check:
       jobs:
         - tap-as-a-service-tempest-dsvm
+        - tap-as-a-service-tempest-plugin
     gate:
       jobs:
         - tap-as-a-service-tempest-dsvm
+        - tap-as-a-service-tempest-plugin
 
 - job:
     name: tap-as-a-service-tempest-dsvm
