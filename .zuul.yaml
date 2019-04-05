@@ -1,13 +1,13 @@
 - project:
+    templates:
+      - openstack-lower-constraints-jobs
     check:
       jobs:
         - tap-as-a-service-tempest-dsvm
-        - openstack-tox-lower-constraints
     gate:
       jobs:
         - tap-as-a-service-tempest-dsvm
 
-        - openstack-tox-lower-constraints
 - job:
     name: tap-as-a-service-tempest-dsvm
     parent: legacy-dsvm-base
