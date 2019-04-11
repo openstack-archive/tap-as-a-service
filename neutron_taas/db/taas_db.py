@@ -32,6 +32,8 @@ from oslo_utils import uuidutils
 LOG = logging.getLogger(__name__)
 
 
+# DONT MERGE TEST
+
 class TapService(model_base.BASEV2, model_base.HasId,
                  model_base.HasProjectNoIndex):
 
