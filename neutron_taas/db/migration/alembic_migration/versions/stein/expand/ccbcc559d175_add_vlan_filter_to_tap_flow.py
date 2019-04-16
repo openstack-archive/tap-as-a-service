@@ -27,6 +27,10 @@ down_revision = 'fddbdec8711a'
 from alembic import op
 import sqlalchemy as sa
 
+
+# milestone identifier, used by neutron-db-manage
+neutron_milestone = [migration.STEIN]
+
 TABLE_NAME = 'tap_flows'
 
 
