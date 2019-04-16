@@ -33,7 +33,12 @@ from neutron.db import migration
 
 
 # milestone identifier, used by neutron-db-manage
-neutron_milestone = [migration.PIKE, migration.QUEENS, migration.ROCKY]
+neutron_milestone = [
+    migration.PIKE,
+    migration.QUEENS,
+    migration.ROCKY,
+    migration.STEIN,
+]
 
 TABLE_NAME = 'tap_id_associations'
 
