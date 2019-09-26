@@ -1,7 +1,0 @@
-[run]
-branch = True
-source = neutron_taas
-omit = neutron_taas/tests/*
-
-[report]
-ignore_errors = True
